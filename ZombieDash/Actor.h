@@ -10,6 +10,7 @@ public:
         moveTo(x_location, y_location);
     }
     virtual void doSomething();
+    
 };
 
 class Penelope: public Actor{
@@ -27,6 +28,7 @@ public:
             switch (ch)
             {
                 case KEY_PRESS_LEFT:
+                    
                     break;
                 case KEY_PRESS_RIGHT:
                     break;
