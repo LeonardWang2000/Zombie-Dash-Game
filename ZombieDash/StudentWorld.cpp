@@ -13,6 +13,7 @@ GameWorld* createStudentWorld(string assetPath)
 StudentWorld::StudentWorld(string assetPath)
 : GameWorld(assetPath)
 {
+    
 }
 
 int StudentWorld::init()
@@ -73,8 +74,9 @@ StudentWorld::~StudentWorld(){
 bool StudentWorld::checkPositionFree(int x, int y){
     vector<Actor>::iterator it;
     for(int i = 0; i < allActors.size(); i++){
-        cout << "Actor position: " << x << "Wall pos: " << allActors[i]->getX() << endl;
-        if(allActors[i]->getY() == y && allActors[i]->getX() == x){
+        //(x+SPRITE_WIDTH−1, y+SPRITE_HEIGHT−1)
+//        if(allActors[i]->getY() == y && allActors[i]->getX() == x){
+        if(((x+SPRITE_WIDTH-1 <= allActors[i]->getX()+SPRITE_WIDTH-1||x <= allActors[i]->getX()+SPRITE_WIDTH-1) && x+SPRITE_WIDTH-1 >= allActors[i]->getX()) && (y+SPRITE_HEIGHT-1 <= allActors[i]->getY()+SPRITE_HEIGHT-1 || y <= allActors[i]->getY()+SPRITE_HEIGHT-1) && y+SPRITE_HEIGHT-1 >= allActors[i]->getY()){
             return false;
         }
     }
