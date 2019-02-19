@@ -15,9 +15,10 @@ public:
     virtual int move();
     virtual void cleanUp();
     ~StudentWorld();
+    bool checkPositionFree(int x, int y);
 
 private:
-    Penelope* example;
+    Penelope* player;
     void setUpLevel();
     std::vector<Actor*> allActors;
 };

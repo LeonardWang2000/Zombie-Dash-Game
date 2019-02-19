@@ -26,14 +26,59 @@ int StudentWorld::move()
 {
     // This code is here merely to allow the game to build, run, and terminate after you hit enter.
     // Notice that the return value GWSTATUS_PLAYER_DIED will cause our framework to end the current level.
-    return 1;
+    // The term "actors" refers to all zombies, Penelope, goodies,
+    // pits, flames, vomit, landmines, etc.
+    // Give each actor a chance to do something, including Penelope
+    for(int i = 0; i< allActors.size(); i++)
+    {
+        if (allActors[i]->isAlive())
+        {
+            // tell each actor to do something (e.g. move)
+            player->doSomething();
+            allActors[i]->doSomething();
+            if (!player->isAlive()){
+                delete player;
+                return GWSTATUS_PLAYER_DIED;
+            }
+//            if (Penelope completed the current level)
+//                return GWSTATUS_FINISHED_LEVEL;
+        }
+        // Remove newly-dead actors after each tick CHECK THIS, MIGHT NOT WORK AND NEED TO MAKE A SEPARATE FOR LOOP
+        if(!allActors[i]->isAlive()){
+            delete allActors[i];
+            allActors.erase(allActors.begin()+i);
+        }
+    }
+    // Remove newly-dead actors after each tick
+    // Update the game status line
+    //Update Display Text // update the score/lives/level text at screen top
+    // the player hasn’t completed the current level and hasn’t died, so
+    // continue playing the current level
+    return GWSTATUS_CONTINUE_GAME;
 }
 
 void StudentWorld::cleanUp()
 {
+    vector<Actor*>::iterator it;
+    for(it = allActors.begin(); it != allActors.end(); it++){
+        delete *it;
+        allActors.erase(it);
+        it = allActors.begin();
+    }
 }
 StudentWorld::~StudentWorld(){
     cleanUp();
+}
+
+bool StudentWorld::checkPositionFree(int x, int y){
+    vector<Actor>::iterator it;
+    for(int i = 0; i < allActors.size(); i++){
+        cout << "Actor position: " << x << "Wall pos: " << allActors[i]->getX() << endl;
+        if(allActors[i]->getY() == y && allActors[i]->getX() == x){
+            return false;
+        }
+    }
+    return true;
 }
 
 void StudentWorld::setUpLevel(){
@@ -53,34 +98,27 @@ void StudentWorld::setUpLevel(){
                 switch (ge) // so x=80 and y=160
                 {
                     case Level::empty:{
-                        cout << "Location " << i << " " << j << " is empty" << endl;
                         break;
                     }
                     case Level::smart_zombie:{
-                        cout << "Location 80,160 starts with a smart zombie" << endl;
                         break;
                     }
                     case Level::dumb_zombie:{
-                        cout << "Location 80,160 starts with a dumb zombie" << endl;
                         break;
                     }
                     case Level::player:{
-                        cout << "Location 80,160 is where Penelope starts" << endl;
-                        example = new Penelope(i*16, j*16);
+                        player = new Penelope(i*16, j*16, this);
                         break;
                     }
                     case Level::exit:{
-                        cout << "Location 80,160 is where an exit is" << endl;
                         break;
                     }
                     case Level::wall:{
-                        cout << "Location 80,160 holds a Wall" << endl;
-                        Wall* wall = new Wall(i*16, j*16);
+                        Wall* wall = new Wall(i*16, j*16, this);
                         allActors.push_back(wall);
                         break;
                     }
                     case Level::pit:{
-                        cout << "Location 80,160 has a pit in the ground" << endl;
                         break;
                     }
                         // etc…
