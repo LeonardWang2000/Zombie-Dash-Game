@@ -13,9 +13,7 @@ GameWorld* createStudentWorld(string assetPath)
 
 StudentWorld::StudentWorld(string assetPath)
 : GameWorld(assetPath)
-{
-    
-}
+{}
 
 int StudentWorld::init()
 {
@@ -113,14 +111,16 @@ void StudentWorld::setUpLevel(){
                         break;
                     }
                     case Level::player:{
-                        player = new Penelope(i*16, j*16, this);
+                        player = new Penelope(i*SPRITE_WIDTH, j*SPRITE_HEIGHT, this);
                         break;
                     }
                     case Level::exit:{
+//                        Exit* exit = new Exit(i*SPRITE_WIDTH, j*SPRITE_HEIGHT, this);
+//                        allActors.push_back(exit);
                         break;
                     }
                     case Level::wall:{
-                        Wall* wall = new Wall(i*16, j*16, this);
+                        Wall* wall = new Wall(i*SPRITE_WIDTH, j*SPRITE_HEIGHT, this);
                         allActors.push_back(wall);
                         break;
                     }

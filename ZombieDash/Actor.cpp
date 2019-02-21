@@ -5,18 +5,22 @@
 Actor::Actor(int imageID, int x_location, int y_location, Direction dir, int depth, double size, StudentWorld* temp):GraphObject(imageID, x_location, y_location, dir, depth, size){
     moveTo(x_location, y_location);
     world = temp;
-    x_loc = x_location;
-    y_loc = y_location;
+    alive = true;
 }
 void Actor::doSomething(){
-    
+    return;
 }
 
+bool Actor::isAlive(){
+    return alive;
+}
 
 StudentWorld* Actor::getWorld(){
         return world;
 }
 
+Actor::~Actor(){
+}
 
 void Penelope::doSomething(){
         int ch;
@@ -58,23 +62,35 @@ void Penelope::doSomething(){
 }
 
 Penelope::Penelope(int x_location, int y_location, StudentWorld* temp):Actor(IID_PLAYER, x_location, y_location, 0, 0, 1, temp){
-    alive = true;
     infectionCount = 0;
     numberOfLives = 3;
 }
 
-bool Penelope::isAlive(){
-    return alive;
-}
+
 
 
 
 Wall::Wall(int x_location, int y_location, StudentWorld* temp):Actor(IID_WALL, x_location, y_location, 0, 0, 1, temp){}
 
-bool Wall::isAlive(){
-    return true;
-}
 
 void Wall::doSomething(){
     return;
 }
+void Exit::doSomething(){
+    
+}
+void Flame::doSomething(){
+    
+}
+void Pit::doSomething(){
+    
+}
+
+
+
+Exit::Exit(int x_location, int y_location, StudentWorld* temp):Actor(IID_EXIT, x_location, y_location, 0, 0, 1, temp){}
+
+
+Pit::Pit(int x_location, int y_location, StudentWorld* temp):Actor(IID_PIT, x_location, y_location, 0, 0, 1, temp){}
+
+Flame:: Flame(int x_location, int y_location, Direction dir, StudentWorld* temp):Actor(IID_FLAME, x_location, y_location, dir, 0, 1, temp){}
