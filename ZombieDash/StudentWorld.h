@@ -3,10 +3,10 @@
 
 #include "GameWorld.h"
 #include <string>
-#include "Actor.h"
 #include "Level.h"
 // Students:  Add code to this file, StudentWorld.cpp, Actor.h, and Actor.cpp
-
+class Penelope;
+class Actor;
 class StudentWorld : public GameWorld
 {
 public:

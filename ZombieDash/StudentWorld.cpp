@@ -1,5 +1,6 @@
 #include "StudentWorld.h"
 #include "GameConstants.h"
+#include "Actor.h"
 #include <string>
 using namespace std;
 
@@ -38,7 +39,6 @@ int StudentWorld::move()
             player->doSomething();
             allActors[i]->doSomething();
             if (!player->isAlive()){
-                delete player;
                 return GWSTATUS_PLAYER_DIED;
             }
 //            if (Penelope completed the current level)
@@ -60,6 +60,8 @@ int StudentWorld::move()
 
 void StudentWorld::cleanUp()
 {
+    //delete everything including player
+    delete player;
     vector<Actor*>::iterator it;
     for(it = allActors.begin(); it != allActors.end(); it++){
         delete *it;
@@ -74,9 +76,11 @@ StudentWorld::~StudentWorld(){
 bool StudentWorld::checkPositionFree(int x, int y){
     vector<Actor>::iterator it;
     for(int i = 0; i < allActors.size(); i++){
-        //(x+SPRITE_WIDTH−1, y+SPRITE_HEIGHT−1)
-//        if(allActors[i]->getY() == y && allActors[i]->getX() == x){
-        if(((x+SPRITE_WIDTH-1 <= allActors[i]->getX()+SPRITE_WIDTH-1||x <= allActors[i]->getX()+SPRITE_WIDTH-1) && x+SPRITE_WIDTH-1 >= allActors[i]->getX()) && (y+SPRITE_HEIGHT-1 <= allActors[i]->getY()+SPRITE_HEIGHT-1 || y <= allActors[i]->getY()+SPRITE_HEIGHT-1) && y+SPRITE_HEIGHT-1 >= allActors[i]->getY()){
+        
+        int x_distance = allActors[i]->getX()+SPRITE_WIDTH-1;
+        int y_distance = allActors[i]->getY()+SPRITE_HEIGHT-1;
+        
+        if((x <= x_distance) && x+SPRITE_WIDTH-1 >= allActors[i]->getX() && (y <= y_distance) && y+SPRITE_HEIGHT-1 >= allActors[i]->getY()){
             return false;
         }
     }
