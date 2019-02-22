@@ -16,11 +16,12 @@ public:
     virtual void cleanUp();
     ~StudentWorld();
     bool checkPositionFree(int x, int y);
-
+    bool checkObjectOverlap(int x, int y, Actor* temp);
 private:
     Penelope* player;
     void setUpLevel();
     std::vector<Actor*> allActors;
+    int score;
 };
 
 #endif // STUDENTWORLD_H_

@@ -13,23 +13,16 @@ public:
     StudentWorld* getWorld();
     //most are default alive
     virtual bool isAlive();
+    void setDead();
     virtual ~Actor();
+    virtual bool isHuman();
+    virtual bool canBeMovedOnto();
 private:
     bool alive;
     StudentWorld* world;
 };
 
 
-class Penelope: public Actor{
-public:
-    Penelope(int x_location, int y_location, StudentWorld* temp);
-    virtual void doSomething();
-private:
-    int infectionCount;
-    int flamethrowerCount;
-    bool infectionStatus;
-    int numberOfLives;
-};
 //Make class of immovable objects?
 
 class Wall: public Actor{
@@ -37,6 +30,7 @@ public:
     Wall(int x_location, int y_location, StudentWorld* temp);
     //walls do something does nothing
     virtual void doSomething();
+    virtual bool canBeMovedOnto();
 };
 
 class Exit: public Actor{
@@ -45,14 +39,98 @@ public:
     virtual void doSomething();
 };
 
-class Pit: public Actor{
-    Pit(int x_location, int y_location, StudentWorld* temp);
+
+//Destroying stuff section------------------------------
+class DestroyStuff: public Actor{
+    
+};
+    //Projectiles Section---------------------------------------
+class Projectiles: public DestroyStuff{
+    
+};
+
+class Flame: public Projectiles{
+//    Flame(int x_location, int y_location, StudentWorld* temp);
     virtual void doSomething();
 };
 
-class Flame: public Actor{
-    Flame(int x_location, int y_location,  Direction dir, StudentWorld* temp);
+class Vomit: public Projectiles{
+//    Vomit(int x_location, int y_location, Direction dir, StudentWorld* temp);
     virtual void doSomething();
 };
 
+class Pit: public DestroyStuff{
+//    Pit(int x_location, int y_location, StudentWorld* temp);
+    virtual void doSomething();
+};
+
+class Landmine:public DestroyStuff{
+    //LANDMINE in both destroy and damagable
+};
+
+//ALL DESTROYABLE/DAMAGABLE ITEMS--------------------------------------
+class Destroyable: public Actor{
+public:
+    Destroyable(int imageID, int x_location, int y_location, StudentWorld* temp);
+    virtual void getDamage();
+    virtual bool canBeMovedOnto();
+};
+
+//All goodies--------------------------------------------
+class Goodie: public Destroyable{
+    Goodie(int imageID, int x_location, int y_location, StudentWorld* temp);
+    virtual bool canBeMovedOnto();
+};
+
+class VaccineGoodie: public Goodie{
+    
+};
+
+class GasCanGoodie: public Goodie{
+    
+};
+
+class LandmineGoodie: public Goodie{
+    
+};
+
+
+//HUMANS------------------------------------------------
+class Human: public Destroyable{
+public:
+    Human(int imageID, int x_location, int y_location, StudentWorld* temp);
+    virtual bool isHuman();
+private:
+    int infectionCount;
+    bool infectionStatus;
+};
+
+class Citizen: public Human{
+public:
+    Citizen(int imageID, int x_location, int y_location, StudentWorld* temp);
+};
+
+class Penelope: public Human{   
+public:
+    Penelope(int x_location, int y_location, StudentWorld* temp);
+    virtual void doSomething();
+    virtual bool isHuman();
+private:
+    int flamethrowerCount;
+    int numberOfLives;
+};
+
+//ZOMBIES--------------------
+class Zombie: public Destroyable{
+public:
+    Zombie(int x_location, int y_location, StudentWorld* temp);
+};
+
+class SmartZombie: public Zombie{
+    SmartZombie(int x_location, int y_location, StudentWorld* temp);
+};
+
+class DumbZombie: public Zombie{
+    DumbZombie(int x_location, int y_location, StudentWorld* temp);
+};
 #endif // ACTOR_H_

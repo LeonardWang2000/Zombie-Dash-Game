@@ -13,7 +13,9 @@ GameWorld* createStudentWorld(string assetPath)
 
 StudentWorld::StudentWorld(string assetPath)
 : GameWorld(assetPath)
-{}
+{
+    score = 0;
+}
 
 int StudentWorld::init()
 {
@@ -72,17 +74,29 @@ StudentWorld::~StudentWorld(){
 }
 
 bool StudentWorld::checkPositionFree(int x, int y){
-    vector<Actor>::iterator it;
+    int x_distance;
+    int y_distance;
     for(int i = 0; i < allActors.size(); i++){
         
-        int x_distance = allActors[i]->getX()+SPRITE_WIDTH-1;
-        int y_distance = allActors[i]->getY()+SPRITE_HEIGHT-1;
-        
-        if((x <= x_distance) && x+SPRITE_WIDTH-1 >= allActors[i]->getX() && (y <= y_distance) && y+SPRITE_HEIGHT-1 >= allActors[i]->getY()){
+        x_distance = allActors[i]->getX()+SPRITE_WIDTH-1;
+        y_distance = allActors[i]->getY()+SPRITE_HEIGHT-1;
+        //wall is 15 pixels, so objectoverlap should be false
+        if((x <= x_distance) && x+SPRITE_WIDTH-1 >= allActors[i]->getX() && (y <= y_distance) && y+SPRITE_HEIGHT-1 >= allActors[i]->getY() && !allActors[i]->canBeMovedOnto()){
             return false;
         }
     }
     return true;
+}
+
+//x represents x value you want to goto, actor is this actor
+bool StudentWorld::checkObjectOverlap(int x, int y, Actor* temp){
+    int centerX = temp->getX() - x;
+    int centerY = temp->getY() - y;
+    int distance = sqrt(centerX*centerX + centerY*centerY);
+    if(distance <= 10){
+        return true;
+    }
+    return false;
 }
 
 void StudentWorld::setUpLevel(){
@@ -115,8 +129,8 @@ void StudentWorld::setUpLevel(){
                         break;
                     }
                     case Level::exit:{
-//                        Exit* exit = new Exit(i*SPRITE_WIDTH, j*SPRITE_HEIGHT, this);
-//                        allActors.push_back(exit);
+                        Exit* exit = new Exit(i*SPRITE_WIDTH, j*SPRITE_HEIGHT, this);
+                        allActors.push_back(exit);
                         break;
                     }
                     case Level::wall:{
@@ -125,6 +139,8 @@ void StudentWorld::setUpLevel(){
                         break;
                     }
                     case Level::pit:{
+//                        Pit* pit = new Pit
+//                        allActors.push_back(pit);
                         break;
                     }
                         // etc…
