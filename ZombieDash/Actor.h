@@ -16,8 +16,13 @@ public:
     void setDead();
     virtual ~Actor();
     virtual bool isHuman();
+    virtual bool isZombie();
     virtual bool canBeMovedOnto();
+    //move to agent
+    void incrementTickCount();
+    int getTickCount();
 private:
+    int tickCount;
     bool alive;
     StudentWorld* world;
 };
@@ -41,11 +46,11 @@ public:
 
 
 //Destroying stuff section------------------------------
-class DestroyStuff: public Actor{
-    
+class ActivatingObject: public Actor{
+
 };
     //Projectiles Section---------------------------------------
-class Projectiles: public DestroyStuff{
+class Projectiles: public ActivatingObject{
     
 };
 
@@ -59,27 +64,27 @@ class Vomit: public Projectiles{
     virtual void doSomething();
 };
 
-class Pit: public DestroyStuff{
+class Pit: public ActivatingObject{
 //    Pit(int x_location, int y_location, StudentWorld* temp);
     virtual void doSomething();
 };
 
-class Landmine:public DestroyStuff{
+class Landmine:public ActivatingObject{
     //LANDMINE in both destroy and damagable
 };
 
-//ALL DESTROYABLE/DAMAGABLE ITEMS--------------------------------------
-class Destroyable: public Actor{
+//ALL Agent/DAMAGABLE ITEMS--------------------------------------
+class Agent: public Actor{
 public:
-    Destroyable(int imageID, int x_location, int y_location, StudentWorld* temp);
+    Agent(int imageID, int x_location, int y_location, StudentWorld* temp);
     virtual void getDamage();
     virtual bool canBeMovedOnto();
 };
 
 //All goodies--------------------------------------------
-class Goodie: public Destroyable{
-    Goodie(int imageID, int x_location, int y_location, StudentWorld* temp);
-    virtual bool canBeMovedOnto();
+class Goodie: public ActivatingObject{
+//    Goodie(int imageID, int x_location, int y_location, StudentWorld* temp);
+//    virtual bool canBeMovedOnto();
 };
 
 class VaccineGoodie: public Goodie{
@@ -96,7 +101,7 @@ class LandmineGoodie: public Goodie{
 
 
 //HUMANS------------------------------------------------
-class Human: public Destroyable{
+class Human: public Agent{
 public:
     Human(int imageID, int x_location, int y_location, StudentWorld* temp);
     virtual bool isHuman();
@@ -107,7 +112,8 @@ private:
 
 class Citizen: public Human{
 public:
-    Citizen(int imageID, int x_location, int y_location, StudentWorld* temp);
+    Citizen(int x_location, int y_location, StudentWorld* temp);
+    virtual void doSomething();
 };
 
 class Penelope: public Human{   
@@ -121,9 +127,10 @@ private:
 };
 
 //ZOMBIES--------------------
-class Zombie: public Destroyable{
+class Zombie: public Agent{
 public:
     Zombie(int x_location, int y_location, StudentWorld* temp);
+    virtual bool isZombie();
 };
 
 class SmartZombie: public Zombie{
