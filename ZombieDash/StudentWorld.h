@@ -16,18 +16,19 @@ public:
     virtual void cleanUp();
     ~StudentWorld();
     bool checkPositionFree(int x, int y, Actor* temp);
-    bool checkObjectOverlap(int x, int y, Actor* temp);
-    bool checkPlayerOverlap(Actor* temp);
-    bool checkCitizenOverlap(Actor* temp);
+    bool checkObjectOverlap(int x, int y, Actor* temp, int overlap);
+    bool checkPlayerOverlap(int x, int y, int overlap);
+    bool checkCitizenOverlap(Actor* temp, int overlap);
     bool isCitizenLeft();
     void setLevelDone();
-    int distanceToPlayer(Actor* temp);
-    int distanceToZombie(Actor* temp);
+    int distanceToPlayer(int x, int y);
+    int distanceToZombie(int x, int y);
     int getPenelopeX();
     int getPenelopeY();
+    bool checkPositionFreePlayer(int x, int y);
 //    void setCitizenDead(int x, int y);
 private:
-    int distanceToActor(Actor* temp1, Actor* temp2);
+    int distanceToActor(int x1, int x2, int y1, int y2);
     Penelope* player;
     void setUpLevel();
     std::vector<Actor*> allActors;

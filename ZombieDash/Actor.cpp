@@ -142,15 +142,16 @@ bool Penelope::isHuman(){
 Agent::Agent(int imageID, int x_location, int y_location, StudentWorld* temp):Actor(imageID, x_location, y_location, 0, 0, 1, temp){
     
 }
-void Zombie::doSomething(){
+void DumbZombie::doSomething(){
     if(!isAlive())
         return;
     incrementTickCount();
-    if(getTickCount()%2==0)
+    if(getTickCount()%2==0){
         return;
+    }
     //IMPLEMENT STEP 3, VOMIT SHIT
-    if(movementPlan == 0){
-        movementPlan = randInt(3, 10);
+    if(getMovementPlan() == 0){
+        setMovementPlan(randInt(3, 10));
         switch(randInt(0, 3)){
             case 0:
                 setDirection(right);
@@ -167,22 +168,22 @@ void Zombie::doSomething(){
         }
     }
     if(getDirection() == right || getDirection() == left){
-        if(getWorld()->checkPositionFree(getX() + appropiateMovementDirection(getDirection(), 1), getY(), this)){
+        if(isAgentFreeDirection(getX() + appropiateMovementDirection(getDirection(), 1), getY())){
             moveTo(getX() + appropiateMovementDirection(getDirection(), 1), getY());
-            movementPlan--;
+            setMovementPlan(getMovementPlan()-1);
             return;
         }
     }else if(getDirection() == up || getDirection() == down){
-        if(getWorld()->checkPositionFree(getX(), getY()+ appropiateMovementDirection(getDirection(), 1), this)){
+        if(isAgentFreeDirection(getX(), getY() + appropiateMovementDirection(getDirection(), 1))){
             moveTo(getX(), getY()+ appropiateMovementDirection(getDirection(), 1));
-            movementPlan--;
+            setMovementPlan(getMovementPlan()-1);
             return;
         }
     }
-    movementPlan = 0;
+    setMovementPlan(0);
 }
 
-void DumbZombie::doSomething(){
+void Zombie::doSomething(){
     
 }
 Zombie::Zombie(int x_location, int y_location, StudentWorld* temp):Agent(IID_ZOMBIE, x_location, y_location, temp){
@@ -212,14 +213,14 @@ bool Wall::canBeMovedOnto(){
 }
 
 void Exit::doSomething(){
-//    if(getWorld()->checkCitizenOverlap(this))
-//        //set citizen to dead
-    if(getWorld()->checkCitizenOverlap(this)){
+    if(getWorld()->checkCitizenOverlap(this, 10))
+        //set citizen to dead
+    if(getWorld()->checkCitizenOverlap(this, 10)){
         //set the citizen to dead in the function above^
         getWorld()->increaseScore(500);
         getWorld()->playSound(SOUND_CITIZEN_SAVED);
     }
-    if(!getWorld()->isCitizenLeft() && getWorld()->checkPlayerOverlap(this))
+    if(!getWorld()->isCitizenLeft() && getWorld()->checkPlayerOverlap(getX(), getY(), 10))
         getWorld()->setLevelDone();
 }
 
@@ -231,8 +232,8 @@ void Citizen::doSomething(){
     if(getTickCount()%2==0){
         return;
     }
-    int dist_p = getWorld()->distanceToPlayer(this);
-    int dist_z = getWorld()->distanceToZombie(this);
+    int dist_p = getWorld()->distanceToPlayer(getX(), getY());
+    int dist_z = getWorld()->distanceToZombie(getX(), getY());
     if(dist_p < dist_z && dist_p <= 80){
         if(getX() == getWorld()->getPenelopeX() || getY() == getWorld()->getPenelopeY()){
         //if same row
@@ -240,14 +241,14 @@ void Citizen::doSomething(){
             //if if penelope is above
             if(getWorld()->getPenelopeY() > getY()){
                 //if we can move up
-                if(getWorld()->checkPositionFree(getX(), getY()+2, this)){
+                if(getWorld()->checkPositionFree(getX(), getY()+2, this) && getWorld()->checkPositionFreePlayer(getX(), getY()+2)){
                     setDirection(up);
                     moveTo(getX(), getY()+2);
                     return;
                 }
             }else{
                 //if penelope is below and we can move there
-                if(getWorld()->checkPositionFree(getX(), getY()-2, this)){
+                if(getWorld()->checkPositionFree(getX(), getY()-2, this) && getWorld()->checkPositionFreePlayer(getX(), getY()-2)){
                     setDirection(down);
                     moveTo(getX(), getY()-2);
                     return;
@@ -255,18 +256,17 @@ void Citizen::doSomething(){
             }
                 
         }
-        //NEED TO FIX CITIZEN RUNNING ONTO PENELOPE
         if(getY() == getWorld()->getPenelopeY()){
             //if penelope is on the right
             if(getWorld()->getPenelopeX() > getX()){
-                if(getWorld()->checkPositionFree(getX()+2, getY(), this)){
+                if(getWorld()->checkPositionFree(getX()+2, getY(), this) && getWorld()->checkPositionFreePlayer(getX()+2, getY())){
                     setDirection(right);
                     moveTo(getX()+2, getY());
                     return;
                 }
             }else{
                 //if penelope is on the left
-                if(getWorld()->checkPositionFree(getX()-2, getY(), this)){
+                if(getWorld()->checkPositionFree(getX()-2, getY(), this) && getWorld()->checkPositionFreePlayer(getX()-2, getY())){
                     setDirection(left);
                     moveTo(getX()-2, getY());
                     return;
@@ -274,6 +274,7 @@ void Citizen::doSomething(){
             }
         }
         }
+        if(getX() != getWorld()->getPenelopeX() && getY() != getWorld()->getPenelopeY()){
         int yChange;
         int xChange;
         if(getWorld()->getPenelopeY() > getY())
@@ -285,12 +286,12 @@ void Citizen::doSomething(){
         else
             xChange = left;
         if(randInt(0, 1) == 0){
-            if(getWorld()->checkPositionFree(getX(), getY() + appropiateMovementDirection(yChange, 2), this)){
+            if(isAgentFreeDirection(getX(), getY() + appropiateMovementDirection(yChange, 2))){
                 setDirection(yChange);
                 moveTo(getX(), getY()+appropiateMovementDirection(yChange, 2));
                 return;
             }else{
-                if(getWorld()->checkPositionFree(getX() + appropiateMovementDirection(xChange, 2), getY(), this)){
+                if(isAgentFreeDirection(getX() + appropiateMovementDirection(xChange, 2), getY())){
                     setDirection(xChange);
                     moveTo(getX() + appropiateMovementDirection(xChange, 2), getY());
                     return;
@@ -299,12 +300,12 @@ void Citizen::doSomething(){
                 
         }
         else{
-            if(getWorld()->checkPositionFree(getX() + appropiateMovementDirection(xChange, 2), getY(), this)){
+            if(isAgentFreeDirection(getX() + appropiateMovementDirection(xChange, 2), getY())){
                 setDirection(xChange);
                 moveTo(getX() + appropiateMovementDirection(xChange, 2), getY());
                 return;
             }else{
-                if(getWorld()->checkPositionFree(getX(), getY() + appropiateMovementDirection(yChange, 2), this)){
+                if(isAgentFreeDirection(getX(), getY() + appropiateMovementDirection(yChange, 2))){
                     setDirection(yChange);
                     moveTo(getX(), getY()+appropiateMovementDirection(yChange, 2));
                     return;
@@ -313,6 +314,48 @@ void Citizen::doSomething(){
         }
         
     }
+    }
+    if(dist_z <= 80){
+        int farthestDistance = getWorld()->distanceToZombie(getX(), getY());
+        int tempDirection = -1;
+        if(isAgentFreeDirection(getX()+2, getY())){
+            if(getWorld()->distanceToZombie(getX()+2, getY()) > farthestDistance){
+                farthestDistance = getWorld()->distanceToZombie(getX()+2, getY());
+            }
+        }if(isAgentFreeDirection(getX()-2, getY())){
+            if(getWorld()->distanceToZombie(getX()-2, getY()) > farthestDistance){
+                farthestDistance = getWorld()->distanceToZombie(getX()-2, getY());
+                tempDirection = left;
+            }
+        }if(isAgentFreeDirection(getX(), getY()-2)){
+            if(getWorld()->distanceToZombie(getX(), getY()-2) > farthestDistance){
+                farthestDistance = getWorld()->distanceToZombie(getX(), getY()-2);
+                tempDirection = down;
+            }
+        }if(isAgentFreeDirection(getX(), getY()+2)){
+            if(getWorld()->distanceToZombie(getX(), getY()+2) > farthestDistance){
+                farthestDistance = getWorld()->distanceToZombie(getX(), getY()+2);
+                tempDirection = up;
+            }
+        }
+        if(tempDirection > 0){
+            setDirection(tempDirection);
+            if(tempDirection == up || tempDirection == down){
+                moveTo(getX(), getY() + appropiateMovementDirection(tempDirection, 2));
+                return;
+            }
+            else if(tempDirection == left || tempDirection == right){
+                moveTo(getX() + appropiateMovementDirection(tempDirection, 2), getY());
+                return;
+            }
+        }
+    }
+}
+
+bool Agent::isAgentFreeDirection(int x, int y){
+    if(getWorld()->checkPositionFree(x, y, this) && getWorld()->checkPositionFreePlayer(x, y))
+        return true;
+    return false;
 }
 //helps add the two pixels to the correct randomized direction
 int Agent:: appropiateMovementDirection(int change, int distance){
@@ -351,4 +394,12 @@ void Actor::activateIfAppropiate(Actor *a){
 
 void Exit::activateIfAppropiate(Actor *a){
     a->setDead();
+}
+
+void Zombie::setMovementPlan(int plan){
+    movementPlan = plan;
+}
+
+int Zombie::getMovementPlan(){
+    return movementPlan;
 }

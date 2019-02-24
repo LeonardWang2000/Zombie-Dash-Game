@@ -83,7 +83,9 @@ public:
     Agent(int imageID, int x_location, int y_location, StudentWorld* temp);
     virtual void getDamage();
     virtual bool canBeMovedOnto();
-    int appropiateMovementDirection(int change, int direction);
+    bool isAgentFreeDirection(int x, int y);
+    int appropiateMovementDirection(int change, int distance);
+private:
 };
 
 //All goodies--------------------------------------------
@@ -139,6 +141,8 @@ public:
     Zombie(int x_location, int y_location, StudentWorld* temp);
     virtual bool isZombie();
     virtual void doSomething();
+    int getMovementPlan();
+    void setMovementPlan(int plan);
 private:
     int movementPlan;
 };

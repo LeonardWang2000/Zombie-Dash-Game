@@ -95,32 +95,41 @@ bool StudentWorld::checkPositionFree(int x, int y, Actor* temp){
             return false;
         }
     }
+    
+    return true;
+}
+
+bool StudentWorld::checkPositionFreePlayer(int x, int y){
+    if((x <= player->getX() + SPRITE_WIDTH-1) && x+SPRITE_WIDTH-1 >= player->getX() && (y <= player->getY() + SPRITE_HEIGHT-1) && y+SPRITE_HEIGHT-1 >= player->getY()){
+        return false;
+    }
     return true;
 }
 
 //x represents x value you want to goto, actor is this actor
-bool StudentWorld::checkObjectOverlap(int x, int y, Actor* temp){
+bool StudentWorld::checkObjectOverlap(int x, int y, Actor* temp, int overlap){
     
     
-    int centerX = temp->getX() - x;
-    int centerY = temp->getY() - y;
+    int centerX = (temp->getX()) - x;
+    int centerY = (temp->getY()) - y;
     int distance = sqrt(centerX*centerX + centerY*centerY);
-    if(distance <= 10){
+    cout << distance << endl;
+    if(distance <= overlap){
         return true;
     }
     return false;
 }
 
-bool StudentWorld::checkPlayerOverlap(Actor *temp){
-    if(checkObjectOverlap(player->getX(), player->getY(), temp))
+bool StudentWorld::checkPlayerOverlap(int x, int y, int overlap){
+    if(checkObjectOverlap(x, y, player, overlap))
         return true;
     return false;
 }
 
-bool StudentWorld::checkCitizenOverlap(Actor *temp){
+bool StudentWorld::checkCitizenOverlap(Actor *temp, int overlap){
     for(int i = 0; i < allActors.size(); i++){
         if(allActors[i]->isHuman()){
-            if(checkObjectOverlap(temp->getX(), temp->getY(), allActors[i])){
+            if(checkObjectOverlap(temp->getX(), temp->getY(), allActors[i], overlap)){
                 temp->activateIfAppropiate(allActors[i]);
                 return true;
             }
@@ -137,8 +146,8 @@ bool StudentWorld::isCitizenLeft(){
     return false;
 }
 
-int StudentWorld::distanceToPlayer(Actor* temp){
-    return distanceToActor(temp, player);
+int StudentWorld::distanceToPlayer(int x, int y){
+    return distanceToActor(x, player->getX(), y, player->getY());
 }
 
 //void StudentWorld::setCitizenDead(int x, int y){
@@ -147,19 +156,19 @@ int StudentWorld::distanceToPlayer(Actor* temp){
 //    }
 //}
 
-int StudentWorld::distanceToActor(Actor *temp1, Actor *temp2){
-    int x = temp1->getX() - temp2->getX();
-    int y = temp1->getY() - temp2->getY();
+int StudentWorld::distanceToActor(int x1, int x2, int y1, int y2){
+    int x = x1-x2;
+    int y = y1-y2;
     return sqrt(x*x + y*y);
 }
 
 //make a distance to specific actor instance method to call if multiple distance to things need to be called
-int StudentWorld::distanceToZombie(Actor *temp){
+int StudentWorld::distanceToZombie(int x, int y){
     int leastDistance = 1000;
     for(int i = 0; i < allActors.size(); i++){
         if(allActors[i]->isZombie()){
-            if(distanceToActor(allActors[i], temp) < leastDistance){
-            leastDistance = distanceToActor(allActors[i], temp);
+            if(distanceToActor(x, allActors[i]->getX(), y, allActors[i]->getY()) < leastDistance){
+                leastDistance = distanceToActor(x, allActors[i]->getX(), y, allActors[i]->getY());
         }
     }
     }
@@ -178,7 +187,7 @@ void StudentWorld::setLevelDone(){
     levelDone = true;
 }
 void StudentWorld::setUpLevel(){
-    //only works up to ten levels
+//    only works up to ten levels
 //    ostringstream oss;
 //    oss << "level0" << getLevel() << ".txt";
 //    string s = oss.str();
