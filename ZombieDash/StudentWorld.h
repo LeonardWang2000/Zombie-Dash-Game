@@ -25,6 +25,7 @@ public:
     int distanceToZombie(Actor* temp);
     int getPenelopeX();
     int getPenelopeY();
+//    void setCitizenDead(int x, int y);
 private:
     int distanceToActor(Actor* temp1, Actor* temp2);
     Penelope* player;

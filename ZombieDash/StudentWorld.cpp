@@ -119,9 +119,12 @@ bool StudentWorld::checkPlayerOverlap(Actor *temp){
 
 bool StudentWorld::checkCitizenOverlap(Actor *temp){
     for(int i = 0; i < allActors.size(); i++){
-        if(allActors[i]->isHuman())
-            if(checkObjectOverlap(temp->getX(), temp->getY(), allActors[i]))
+        if(allActors[i]->isHuman()){
+            if(checkObjectOverlap(temp->getX(), temp->getY(), allActors[i])){
+                temp->activateIfAppropiate(allActors[i]);
                 return true;
+            }
+        }
     }
     return false;
 }
@@ -137,6 +140,12 @@ bool StudentWorld::isCitizenLeft(){
 int StudentWorld::distanceToPlayer(Actor* temp){
     return distanceToActor(temp, player);
 }
+
+//void StudentWorld::setCitizenDead(int x, int y){
+//    for(int i = 0; i < allActors.size(); i++){
+//        if(x == allActors)
+//    }
+//}
 
 int StudentWorld::distanceToActor(Actor *temp1, Actor *temp2){
     int x = temp1->getX() - temp2->getX();
@@ -197,6 +206,8 @@ void StudentWorld::setUpLevel(){
                         break;
                     }
                     case Level::dumb_zombie:{
+                        DumbZombie* dumbZombie = new DumbZombie(i*SPRITE_WIDTH, j*SPRITE_HEIGHT, this);
+                        allActors.push_back(dumbZombie);
                         break;
                     }
                     case Level::citizen:{

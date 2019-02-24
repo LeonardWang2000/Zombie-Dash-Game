@@ -86,11 +86,17 @@ void Pit::doSomething(){
 void Vomit::doSomething(){
     
 }
+ActivatingObject::ActivatingObject(int imageID, int x_location, int y_location, StudentWorld* temp):Actor(imageID, x_location, y_location, 0, 0, 1, temp){
+    
+}
 
+Exit::Exit(int x_location, int y_location, StudentWorld* temp):ActivatingObject(IID_EXIT, x_location, y_location, temp){
+    
+}
 
-Exit::Exit(int x_location, int y_location, StudentWorld* temp):Actor(IID_EXIT, x_location, y_location, 0, 0, 1, temp){}
-
-
+void ActivatingObject::doSomething(){
+    
+}
 //Pit::Pit(int x_location, int y_location, StudentWorld* temp):Actor(IID_PIT, x_location, y_location, 0, 0, 1, temp){}
 //
 //Flame:: Flame(int x_location, int y_location, StudentWorld* temp):Actor(IID_FLAME, x_location, y_location, right, 0, 1, temp){}
@@ -136,9 +142,51 @@ bool Penelope::isHuman(){
 Agent::Agent(int imageID, int x_location, int y_location, StudentWorld* temp):Actor(imageID, x_location, y_location, 0, 0, 1, temp){
     
 }
+void Zombie::doSomething(){
+    if(!isAlive())
+        return;
+    incrementTickCount();
+    if(getTickCount()%2==0)
+        return;
+    //IMPLEMENT STEP 3, VOMIT SHIT
+    if(movementPlan == 0){
+        movementPlan = randInt(3, 10);
+        switch(randInt(0, 3)){
+            case 0:
+                setDirection(right);
+                break;
+            case 1:
+                setDirection(up);
+                break;
+            case 2:
+                setDirection(left);
+                break;
+            case 3:
+                setDirection(down);
+                break;
+        }
+    }
+    if(getDirection() == right || getDirection() == left){
+        if(getWorld()->checkPositionFree(getX() + appropiateMovementDirection(getDirection(), 1), getY(), this)){
+            moveTo(getX() + appropiateMovementDirection(getDirection(), 1), getY());
+            movementPlan--;
+            return;
+        }
+    }else if(getDirection() == up || getDirection() == down){
+        if(getWorld()->checkPositionFree(getX(), getY()+ appropiateMovementDirection(getDirection(), 1), this)){
+            moveTo(getX(), getY()+ appropiateMovementDirection(getDirection(), 1));
+            movementPlan--;
+            return;
+        }
+    }
+    movementPlan = 0;
+}
 
-Zombie::Zombie(int x_location, int y_location, StudentWorld* temp):Agent(IID_ZOMBIE, x_location, y_location, temp){
+void DumbZombie::doSomething(){
     
+}
+Zombie::Zombie(int x_location, int y_location, StudentWorld* temp):Agent(IID_ZOMBIE, x_location, y_location, temp){
+    movementPlan = 0;
 }
 
 SmartZombie::SmartZombie(int x_location, int y_location, StudentWorld* temp):Zombie(x_location, y_location, temp){
@@ -166,6 +214,11 @@ bool Wall::canBeMovedOnto(){
 void Exit::doSomething(){
 //    if(getWorld()->checkCitizenOverlap(this))
 //        //set citizen to dead
+    if(getWorld()->checkCitizenOverlap(this)){
+        //set the citizen to dead in the function above^
+        getWorld()->increaseScore(500);
+        getWorld()->playSound(SOUND_CITIZEN_SAVED);
+    }
     if(!getWorld()->isCitizenLeft() && getWorld()->checkPlayerOverlap(this))
         getWorld()->setLevelDone();
 }
@@ -181,6 +234,7 @@ void Citizen::doSomething(){
     int dist_p = getWorld()->distanceToPlayer(this);
     int dist_z = getWorld()->distanceToZombie(this);
     if(dist_p < dist_z && dist_p <= 80){
+        if(getX() == getWorld()->getPenelopeX() || getY() == getWorld()->getPenelopeY()){
         //if same row
         if(getX() == getWorld()->getPenelopeX()){
             //if if penelope is above
@@ -201,6 +255,7 @@ void Citizen::doSomething(){
             }
                 
         }
+        //NEED TO FIX CITIZEN RUNNING ONTO PENELOPE
         if(getY() == getWorld()->getPenelopeY()){
             //if penelope is on the right
             if(getWorld()->getPenelopeX() > getX()){
@@ -218,7 +273,60 @@ void Citizen::doSomething(){
                 }
             }
         }
+        }
+        int yChange;
+        int xChange;
+        if(getWorld()->getPenelopeY() > getY())
+            yChange = up;
+        else
+            yChange = down;
+        if(getWorld()->getPenelopeX() > getX())
+            xChange = right;
+        else
+            xChange = left;
+        if(randInt(0, 1) == 0){
+            if(getWorld()->checkPositionFree(getX(), getY() + appropiateMovementDirection(yChange, 2), this)){
+                setDirection(yChange);
+                moveTo(getX(), getY()+appropiateMovementDirection(yChange, 2));
+                return;
+            }else{
+                if(getWorld()->checkPositionFree(getX() + appropiateMovementDirection(xChange, 2), getY(), this)){
+                    setDirection(xChange);
+                    moveTo(getX() + appropiateMovementDirection(xChange, 2), getY());
+                    return;
+                }
+            }
+                
+        }
+        else{
+            if(getWorld()->checkPositionFree(getX() + appropiateMovementDirection(xChange, 2), getY(), this)){
+                setDirection(xChange);
+                moveTo(getX() + appropiateMovementDirection(xChange, 2), getY());
+                return;
+            }else{
+                if(getWorld()->checkPositionFree(getX(), getY() + appropiateMovementDirection(yChange, 2), this)){
+                    setDirection(yChange);
+                    moveTo(getX(), getY()+appropiateMovementDirection(yChange, 2));
+                    return;
+                }
+            }
+        }
+        
     }
+}
+//helps add the two pixels to the correct randomized direction
+int Agent:: appropiateMovementDirection(int change, int distance){
+    switch(change){
+        case right:
+        case up:
+            return distance;
+            break;
+        case left:
+        case down:
+            return distance*-1;
+            break;
+    }
+    return 0;
 }
 
 void Actor::incrementTickCount(){
@@ -235,4 +343,12 @@ bool Actor::isZombie(){
 
 bool Zombie::isZombie(){
     return true;
+}
+//ALL ACTIVATE TO APPROPIATE METHODS
+void Actor::activateIfAppropiate(Actor *a){
+    
+}
+
+void Exit::activateIfAppropiate(Actor *a){
+    a->setDead();
 }

@@ -4,6 +4,7 @@
 #include "GraphObject.h"
 #include "GameWorld.h"
 class StudentWorld;
+class Citizen;
 // Students:  Add code to this file, Actor.cpp, StudentWorld.h, and StudentWorld.cpp
 class Actor : public GraphObject{
 public:
@@ -18,6 +19,7 @@ public:
     virtual bool isHuman();
     virtual bool isZombie();
     virtual bool canBeMovedOnto();
+    virtual void activateIfAppropiate(Actor* a);
     //move to agent
     void incrementTickCount();
     int getTickCount();
@@ -37,29 +39,32 @@ public:
     virtual void doSomething();
     virtual bool canBeMovedOnto();
 };
+//need to put this under activating object
+class ActivatingObject: public Actor{
+public:
+    ActivatingObject(int imageID, int x_location, int y_location, StudentWorld*temp);
+    virtual void doSomething();
+};
 
-class Exit: public Actor{
+class Exit: public ActivatingObject{
 public:
     Exit(int x_location, int y_location, StudentWorld* temp);
     virtual void doSomething();
+    virtual void activateIfAppropiate(Actor* a);
+private:
+    Citizen* citizen;
 };
 
 
 //Destroying stuff section------------------------------
-class ActivatingObject: public Actor{
 
-};
-    //Projectiles Section---------------------------------------
-class Projectiles: public ActivatingObject{
-    
-};
 
-class Flame: public Projectiles{
+class Flame: public ActivatingObject{
 //    Flame(int x_location, int y_location, StudentWorld* temp);
     virtual void doSomething();
 };
 
-class Vomit: public Projectiles{
+class Vomit: public ActivatingObject{
 //    Vomit(int x_location, int y_location, Direction dir, StudentWorld* temp);
     virtual void doSomething();
 };
@@ -70,7 +75,6 @@ class Pit: public ActivatingObject{
 };
 
 class Landmine:public ActivatingObject{
-    //LANDMINE in both destroy and damagable
 };
 
 //ALL Agent/DAMAGABLE ITEMS--------------------------------------
@@ -79,6 +83,7 @@ public:
     Agent(int imageID, int x_location, int y_location, StudentWorld* temp);
     virtual void getDamage();
     virtual bool canBeMovedOnto();
+    int appropiateMovementDirection(int change, int direction);
 };
 
 //All goodies--------------------------------------------
@@ -105,17 +110,19 @@ class Human: public Agent{
 public:
     Human(int imageID, int x_location, int y_location, StudentWorld* temp);
     virtual bool isHuman();
+    
 private:
     int infectionCount;
     bool infectionStatus;
 };
-
+//CITIZEN
 class Citizen: public Human{
 public:
     Citizen(int x_location, int y_location, StudentWorld* temp);
     virtual void doSomething();
+private:
 };
-
+//PENELOPE
 class Penelope: public Human{   
 public:
     Penelope(int x_location, int y_location, StudentWorld* temp);
@@ -131,6 +138,9 @@ class Zombie: public Agent{
 public:
     Zombie(int x_location, int y_location, StudentWorld* temp);
     virtual bool isZombie();
+    virtual void doSomething();
+private:
+    int movementPlan;
 };
 
 class SmartZombie: public Zombie{
@@ -138,6 +148,8 @@ class SmartZombie: public Zombie{
 };
 
 class DumbZombie: public Zombie{
+public:
     DumbZombie(int x_location, int y_location, StudentWorld* temp);
+    virtual void doSomething();
 };
 #endif // ACTOR_H_
