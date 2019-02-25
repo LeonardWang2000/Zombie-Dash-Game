@@ -20,10 +20,14 @@ public:
     virtual bool isZombie();
     virtual bool canBeMovedOnto();
     virtual void activateIfAppropiate(Actor* a);
+    virtual bool beVomitedOnIfAppropriate();
+    void setInfectionStatus();
     //move to agent
     void incrementTickCount();
     int getTickCount();
+    bool getInfectionStatus();
 private:
+    bool infectionStatus;
     int tickCount;
     bool alive;
     StudentWorld* world;
@@ -42,7 +46,7 @@ public:
 //need to put this under activating object
 class ActivatingObject: public Actor{
 public:
-    ActivatingObject(int imageID, int x_location, int y_location, StudentWorld*temp);
+    ActivatingObject(int imageID, int x_location, int y_location, Direction dir, StudentWorld*temp);
     virtual void doSomething();
 };
 
@@ -65,8 +69,10 @@ class Flame: public ActivatingObject{
 };
 
 class Vomit: public ActivatingObject{
-//    Vomit(int x_location, int y_location, Direction dir, StudentWorld* temp);
+public:
+    Vomit(int x_location, int y_location, Direction dir, StudentWorld* temp);
     virtual void doSomething();
+    virtual void activateIfAppropiate(Actor*a);
 };
 
 class Pit: public ActivatingObject{
@@ -112,10 +118,11 @@ class Human: public Agent{
 public:
     Human(int imageID, int x_location, int y_location, StudentWorld* temp);
     virtual bool isHuman();
-    
+    virtual bool beVomitedOnIfAppropriate();
+    void incrementInfectionCount();
+    int getInfectionCount();
 private:
     int infectionCount;
-    bool infectionStatus;
 };
 //CITIZEN
 class Citizen: public Human{
@@ -148,6 +155,7 @@ private:
 };
 
 class SmartZombie: public Zombie{
+public:
     SmartZombie(int x_location, int y_location, StudentWorld* temp);
 };
 

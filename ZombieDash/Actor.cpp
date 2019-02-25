@@ -7,6 +7,7 @@ Actor::Actor(int imageID, int x_location, int y_location, Direction dir, int dep
     world = temp;
     alive = true;
     tickCount = 0;
+    infectionStatus = false;
 }
 void Actor::doSomething(){
     return;
@@ -83,14 +84,12 @@ void Flame::doSomething(){
 void Pit::doSomething(){
     
 }
-void Vomit::doSomething(){
-    
-}
-ActivatingObject::ActivatingObject(int imageID, int x_location, int y_location, StudentWorld* temp):Actor(imageID, x_location, y_location, 0, 0, 1, temp){
+
+ActivatingObject::ActivatingObject(int imageID, int x_location, int y_location, Direction dir, StudentWorld* temp):Actor(imageID, x_location, y_location, dir, 0, 1, temp){
     
 }
 
-Exit::Exit(int x_location, int y_location, StudentWorld* temp):ActivatingObject(IID_EXIT, x_location, y_location, temp){
+Exit::Exit(int x_location, int y_location, StudentWorld* temp):ActivatingObject(IID_EXIT, x_location, y_location, right, temp){
     
 }
 
@@ -101,8 +100,40 @@ void ActivatingObject::doSomething(){
 //
 //Flame:: Flame(int x_location, int y_location, StudentWorld* temp):Actor(IID_FLAME, x_location, y_location, right, 0, 1, temp){}
 //
-//Vomit::Vomit(int x_location, int y_location, Direction dir, StudentWorld* temp):Actor(IID_VOMIT, x_location, y_location, dir, 0, 1, temp){}
+Vomit::Vomit(int x_location, int y_location, Direction dir, StudentWorld* temp):ActivatingObject(IID_VOMIT, x_location, y_location, dir, temp){}
+void Vomit::doSomething(){
+    if(!isAlive()){
+        return;
+    }
+    incrementTickCount();
+    if(getTickCount() == 2){
+        setDead();
+        return;
+    }
+    if(getWorld()->checkPlayerOverlap(getX(), getY(), 10, this) || getWorld()->checkCitizenOverlap(this, 10)){
+        //gets infected through activated
+    }
+        
+}
+void Vomit::activateIfAppropiate(Actor *a){
+    if(a->isHuman()){
+        a->setInfectionStatus();
+    }
+    
+}
 
+bool Actor::beVomitedOnIfAppropriate(){
+    return false;
+}
+bool Human::beVomitedOnIfAppropriate(){
+    return true;
+}
+void Actor::setInfectionStatus(){
+    infectionStatus = true;
+}
+bool Actor::getInfectionStatus(){
+    return infectionStatus;
+}
 //depth of goodie is always one, direction right
 //Goodie::Goodie(int imageID, int x_location, int y_location, StudentWorld* temp):ActivatingObject(imageID, x_location, y_location, temp){
 //    
@@ -115,7 +146,6 @@ void Agent::getDamage(){
 //HUMANS--------------------------
 Human::Human(int imageID, int x_location, int y_location, StudentWorld* temp):Agent(imageID, x_location, y_location, temp){
     infectionCount = 0;
-    infectionStatus = false;
 }
 
 Penelope::Penelope(int x_location, int y_location, StudentWorld* temp):Human(IID_PLAYER, x_location, y_location, temp){
@@ -149,6 +179,7 @@ void DumbZombie::doSomething(){
     if(getTickCount()%2==0){
         return;
     }
+//    if(getDirection() == up && getY() < )
     //IMPLEMENT STEP 3, VOMIT SHIT
     if(getMovementPlan() == 0){
         setMovementPlan(randInt(3, 10));
@@ -213,20 +244,42 @@ bool Wall::canBeMovedOnto(){
 }
 
 void Exit::doSomething(){
-    if(getWorld()->checkCitizenOverlap(this, 10))
         //set citizen to dead
     if(getWorld()->checkCitizenOverlap(this, 10)){
         //set the citizen to dead in the function above^
         getWorld()->increaseScore(500);
         getWorld()->playSound(SOUND_CITIZEN_SAVED);
     }
-    if(!getWorld()->isCitizenLeft() && getWorld()->checkPlayerOverlap(getX(), getY(), 10))
+    if(!getWorld()->isCitizenLeft() && getWorld()->checkPlayerOverlap(getX(), getY(), 10, this))
         getWorld()->setLevelDone();
 }
-
+int Human::getInfectionCount(){
+    return infectionCount;
+}
+void Human::incrementInfectionCount(){
+    infectionCount++;
+}
 void Citizen::doSomething(){
     if(!isAlive()){
         return;
+    }
+    if(getInfectionStatus()){
+        incrementInfectionCount();
+        if(getInfectionCount() == 500){
+            setDead();
+            getWorld()->playSound(SOUND_ZOMBIE_BORN);
+            getWorld()->addToScore(-1000);
+            int rand = randInt(1, 10);
+            if(rand >= 1 && rand <= 3){
+                SmartZombie* zombie = new SmartZombie(getX(), getY(), getWorld());
+                getWorld()->addActor(zombie);
+                return;
+            }else{
+                DumbZombie* zombie = new DumbZombie(getX(), getY(), getWorld());
+                getWorld()->addActor(zombie);
+                return;
+            }
+        }
     }
     incrementTickCount();
     if(getTickCount()%2==0){
@@ -393,7 +446,12 @@ void Actor::activateIfAppropiate(Actor *a){
 }
 
 void Exit::activateIfAppropiate(Actor *a){
-    a->setDead();
+    if(getWorld()->isCitizenLeft()){
+        a->setDead();
+        return;
+    }
+    getWorld()->setLevelDone();
+    
 }
 
 void Zombie::setMovementPlan(int plan){

@@ -113,16 +113,17 @@ bool StudentWorld::checkObjectOverlap(int x, int y, Actor* temp, int overlap){
     int centerX = (temp->getX()) - x;
     int centerY = (temp->getY()) - y;
     int distance = sqrt(centerX*centerX + centerY*centerY);
-    cout << distance << endl;
     if(distance <= overlap){
         return true;
     }
     return false;
 }
 
-bool StudentWorld::checkPlayerOverlap(int x, int y, int overlap){
-    if(checkObjectOverlap(x, y, player, overlap))
+bool StudentWorld::checkPlayerOverlap(int x, int y, int overlap, Actor* temp){
+    if(checkObjectOverlap(x, y, player, overlap)){
+        temp->activateIfAppropiate(player);
         return true;
+    }
     return false;
 }
 
@@ -174,6 +175,9 @@ int StudentWorld::distanceToZombie(int x, int y){
     }
     return leastDistance;
 }
+void StudentWorld::addActor(Actor *a){
+    allActors.push_back(a);
+}
 
 int StudentWorld::getPenelopeX(){
     return player->getX();
@@ -186,6 +190,12 @@ int StudentWorld::getPenelopeY(){
 void StudentWorld::setLevelDone(){
     levelDone = true;
 }
+int StudentWorld::getScore(){
+    return score;
+}
+void StudentWorld::addToScore(int number){
+    score += number;
+}
 void StudentWorld::setUpLevel(){
 //    only works up to ten levels
 //    ostringstream oss;
@@ -194,7 +204,7 @@ void StudentWorld::setUpLevel(){
     Level lev(assetPath());
 //    string levelFile = s;
     //temp test
-    string levelFile = "level02.txt";
+    string levelFile = "level01.txt";
     Level::LoadResult result = lev.loadLevel(levelFile);
     if (result == Level::load_fail_file_not_found)
         cerr << "Cannot find level01.txt data file" << endl;

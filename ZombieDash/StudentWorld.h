@@ -17,7 +17,7 @@ public:
     ~StudentWorld();
     bool checkPositionFree(int x, int y, Actor* temp);
     bool checkObjectOverlap(int x, int y, Actor* temp, int overlap);
-    bool checkPlayerOverlap(int x, int y, int overlap);
+    bool checkPlayerOverlap(int x, int y, int overlap, Actor* temp);
     bool checkCitizenOverlap(Actor* temp, int overlap);
     bool isCitizenLeft();
     void setLevelDone();
@@ -26,6 +26,9 @@ public:
     int getPenelopeX();
     int getPenelopeY();
     bool checkPositionFreePlayer(int x, int y);
+    int getScore();
+    void addToScore(int number);
+    void addActor(Actor* a);
 //    void setCitizenDead(int x, int y);
 private:
     int distanceToActor(int x1, int x2, int y1, int y2);
