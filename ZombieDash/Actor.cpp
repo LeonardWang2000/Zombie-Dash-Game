@@ -255,9 +255,138 @@ void Zombie::doSomething(){
     doDifferentZombieStuff();
 }
 void SmartZombie::doDifferentZombieStuff(){
-    int dist_c = getWorld()->leastDistanceToCitizen(getX(), getY());
-    int dist_p = getWorld()->distanceToPlayer(getX(), getY());
-    
+    int xOfClosest;
+    int yOfClosest;
+    getWorld()->closestHuman(xOfClosest, yOfClosest, this);
+    if(getMovementPlan() == 0){
+        setMovementPlan(randInt(3, 10));
+        if(!getWorld()->checkObjectOverlap(xOfClosest, yOfClosest, this, 80)){
+            switch(randInt(0, 3)){
+                case 0:
+                    setDirection(right);
+                    break;
+                case 1:
+                    setDirection(up);
+                    break;
+                case 2:
+                    setDirection(left);
+                    break;
+                case 3:
+                    setDirection(down);
+                    break;
+            }
+        }else{
+            if(getX() == xOfClosest || getY() == yOfClosest){
+                //if same row
+                if(getX() == xOfClosest){
+                    //if if citizen/penelope is above
+                    if(yOfClosest > getY()){
+                        //if we can move up
+                        if(getWorld()->checkPositionFree(getX(), getY()+1, this) && getWorld()->checkPositionFreePlayer(getX(), getY()+1)){
+                            setDirection(up);
+                            moveTo(getX(), getY()+1);
+                            setMovementPlan(getMovementPlan()-1);
+                            std::cout << "A" << std::endl;
+                            return;
+                        }
+                    }else{
+                        //if citizen/penelope is below and we can move there
+                        if(getWorld()->checkPositionFree(getX(), getY()-1, this) && getWorld()->checkPositionFreePlayer(getX(), getY()-1)){
+                            setDirection(down);
+                            moveTo(getX(), getY()-1);
+                            setMovementPlan(getMovementPlan()-1);
+                            std::cout << "B" << std::endl;
+                            return;
+                        }
+                    }
+                    
+                }
+                if(getY() == yOfClosest){
+                    //if citizen/penelope is on the right
+                    if(xOfClosest > getX()){
+                        if(getWorld()->checkPositionFree(getX()+1, getY(), this) && getWorld()->checkPositionFreePlayer(getX()+1, getY())){
+                            setDirection(right);
+                            moveTo(getX()+1, getY());
+                            setMovementPlan(getMovementPlan()-1);
+                            std::cout << "C" << std::endl;
+                            return;
+                        }
+                    }else{
+                        //if citizen/penelope is on the left
+                        if(getWorld()->checkPositionFree(getX()-1, getY(), this) && getWorld()->checkPositionFreePlayer(getX()-1, getY())){
+                            setDirection(left);
+                            moveTo(getX()-1, getY());
+                            setMovementPlan(getMovementPlan()-1);
+                            std::cout << "D" << std::endl;
+                            return;
+                        }
+                    }
+                }
+            }
+            std::cout << "E" << std::endl;
+            if(getX() != xOfClosest && getY() != yOfClosest){
+                int yChange;
+                int xChange;
+                if(yOfClosest > getY())
+                    yChange = up;
+                else
+                    yChange = down;
+                if(xOfClosest > getX())
+                    xChange = right;
+                else
+                    xChange = left;
+                std::cout << "a";
+                if(randInt(0, 1) == 0){
+                    if(isAgentFreeDirection(getX(), getY() + appropiateMovementDirection(yChange, 1))){
+                        setDirection(yChange);
+                        moveTo(getX(), getY()+appropiateMovementDirection(yChange, 1));
+                        setMovementPlan(getMovementPlan()-1);
+                        return;
+                    }else{
+                        if(isAgentFreeDirection(getX() + appropiateMovementDirection(xChange, 1), getY())){
+                            setDirection(xChange);
+                            moveTo(getX() + appropiateMovementDirection(xChange, 1), getY());
+                            setMovementPlan(getMovementPlan()-1);
+                            return;
+                        }
+                    }
+                    
+                }
+                else{
+                    std::cout << "F" << std::endl;
+                    if(isAgentFreeDirection(getX() + appropiateMovementDirection(xChange, 1), getY())){
+                        setDirection(xChange);
+                        moveTo(getX() + appropiateMovementDirection(xChange, 1), getY());
+                        setMovementPlan(getMovementPlan()-1);
+                        return;
+                    }else{
+                        if(isAgentFreeDirection(getX(), getY() + appropiateMovementDirection(yChange, 2))){
+                            setDirection(yChange);
+                            moveTo(getX(), getY()+appropiateMovementDirection(yChange, 1));
+                            setMovementPlan(getMovementPlan()-1);
+                            return;
+                        }
+                    }
+                }
+                
+            }
+        }
+    }
+    std::cout << "G" << std::endl;
+    if(getDirection() == right || getDirection() == left){
+        if(isAgentFreeDirection(getX() + appropiateMovementDirection(getDirection(), 1), getY())){
+            moveTo(getX() + appropiateMovementDirection(getDirection(), 1), getY());
+            setMovementPlan(getMovementPlan()-1);
+            return;
+        }
+    }else if(getDirection() == up || getDirection() == down){
+        if(isAgentFreeDirection(getX(), getY() + appropiateMovementDirection(getDirection(), 1))){
+            moveTo(getX(), getY()+ appropiateMovementDirection(getDirection(), 1));
+            setMovementPlan(getMovementPlan()-1);
+            return;
+        }
+    }
+    setMovementPlan(0);
     
 }
 Zombie::Zombie(int x_location, int y_location, StudentWorld* temp):Agent(IID_ZOMBIE, x_location, y_location, temp){

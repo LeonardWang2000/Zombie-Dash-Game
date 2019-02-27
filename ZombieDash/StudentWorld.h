@@ -23,7 +23,6 @@ public:
     void setLevelDone();
     int distanceToPlayer(int x, int y);
     int leastDistanceToZombie(int x, int y);
-    int leastDistanceToCitizen(int x, int y);
     int getPenelopeX();
     int getPenelopeY();
     bool checkPositionFreePlayer(int x, int y);
@@ -32,6 +31,7 @@ public:
     void addActor(Actor* a);
     void activateOnAppropriateActors(Actor* a);
     bool isZombieVomitTriggerAt(double x, double y) const;
+    void closestHuman(int &x, int &y, Actor* temp);
 //    void setCitizenDead(int x, int y);
 private:
     int distanceToActor(int x1, int x2, int y1, int y2);
