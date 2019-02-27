@@ -112,6 +112,7 @@ void Vomit::doSomething(){
     }
     if(getWorld()->checkPlayerOverlap(getX(), getY(), 10, this) || getWorld()->checkCitizenOverlap(this, 10)){
         //gets infected through activated
+        
     }
         
 }
@@ -172,15 +173,25 @@ bool Penelope::isHuman(){
 Agent::Agent(int imageID, int x_location, int y_location, StudentWorld* temp):Actor(imageID, x_location, y_location, 0, 0, 1, temp){
     
 }
-void DumbZombie::doSomething(){
-    if(!isAlive())
-        return;
-    incrementTickCount();
-    if(getTickCount()%2==0){
-        return;
+bool Zombie::addVomitIfAppropiate(int vomit_x, int vomit_y){
+    if(getWorld()->isZombieVomitTriggerAt(vomit_x, vomit_y)){
+        Vomit* vomit = new Vomit(vomit_x, vomit_y, up, getWorld());
+        getWorld()->addActor(vomit);
+        getWorld()->playSound(SOUND_ZOMBIE_VOMIT);
+        return true;
     }
-//    if(getDirection() == up && getY() < )
-    //IMPLEMENT STEP 3, VOMIT SHIT
+        if(getWorld()->checkPlayerOverlap(vomit_x, vomit_y, 10, this) || getWorld()->checkCitizenOverlap(this, 10)){
+            if(randInt(1, 3) == 1){
+                std::cout << "A";
+                Vomit* vomit = new Vomit(vomit_x, vomit_y, up, getWorld());
+                getWorld()->addActor(vomit);
+                getWorld()->playSound(SOUND_ZOMBIE_VOMIT);
+                return true;
+            }
+        }
+    return false;
+}
+void DumbZombie::doDifferentZombieStuff(){
     if(getMovementPlan() == 0){
         setMovementPlan(randInt(3, 10));
         switch(randInt(0, 3)){
@@ -213,8 +224,40 @@ void DumbZombie::doSomething(){
     }
     setMovementPlan(0);
 }
+void DumbZombie::doSomething(){
+    Zombie::doSomething();
+}
 
 void Zombie::doSomething(){
+    //common cases in both zombie classes
+    if(!isAlive())
+        return;
+    incrementTickCount();
+    if(getTickCount()%2==0){
+        return;
+    }
+    //vomit cases
+    switch(getDirection()){
+        case up:
+            addVomitIfAppropiate(getX(), getY()+16);
+            break;
+        case down:
+            addVomitIfAppropiate(getX(), getY()-16);
+            break;
+        case left:
+            addVomitIfAppropiate(getX()-16, getY());
+            break;
+        case right:
+            addVomitIfAppropiate(getX()+16, getY());
+            break;
+
+    }
+    doDifferentZombieStuff();
+}
+void SmartZombie::doDifferentZombieStuff(){
+    int dist_c = getWorld()->leastDistanceToCitizen(getX(), getY());
+    int dist_p = getWorld()->distanceToPlayer(getX(), getY());
+    
     
 }
 Zombie::Zombie(int x_location, int y_location, StudentWorld* temp):Agent(IID_ZOMBIE, x_location, y_location, temp){
@@ -259,6 +302,9 @@ int Human::getInfectionCount(){
 void Human::incrementInfectionCount(){
     infectionCount++;
 }
+void SmartZombie::doSomething(){
+    Zombie::doSomething();
+}
 void Citizen::doSomething(){
     if(!isAlive()){
         return;
@@ -286,7 +332,7 @@ void Citizen::doSomething(){
         return;
     }
     int dist_p = getWorld()->distanceToPlayer(getX(), getY());
-    int dist_z = getWorld()->distanceToZombie(getX(), getY());
+    int dist_z = getWorld()->leastDistanceToZombie(getX(), getY());
     if(dist_p < dist_z && dist_p <= 80){
         if(getX() == getWorld()->getPenelopeX() || getY() == getWorld()->getPenelopeY()){
         //if same row
@@ -369,25 +415,25 @@ void Citizen::doSomething(){
     }
     }
     if(dist_z <= 80){
-        int farthestDistance = getWorld()->distanceToZombie(getX(), getY());
+        int farthestDistance = getWorld()->leastDistanceToZombie(getX(), getY());
         int tempDirection = -1;
         if(isAgentFreeDirection(getX()+2, getY())){
-            if(getWorld()->distanceToZombie(getX()+2, getY()) > farthestDistance){
-                farthestDistance = getWorld()->distanceToZombie(getX()+2, getY());
+            if(getWorld()->leastDistanceToZombie(getX()+2, getY()) > farthestDistance){
+                farthestDistance = getWorld()->leastDistanceToZombie(getX()+2, getY());
             }
         }if(isAgentFreeDirection(getX()-2, getY())){
-            if(getWorld()->distanceToZombie(getX()-2, getY()) > farthestDistance){
-                farthestDistance = getWorld()->distanceToZombie(getX()-2, getY());
+            if(getWorld()->leastDistanceToZombie(getX()-2, getY()) > farthestDistance){
+                farthestDistance = getWorld()->leastDistanceToZombie(getX()-2, getY());
                 tempDirection = left;
             }
         }if(isAgentFreeDirection(getX(), getY()-2)){
-            if(getWorld()->distanceToZombie(getX(), getY()-2) > farthestDistance){
-                farthestDistance = getWorld()->distanceToZombie(getX(), getY()-2);
+            if(getWorld()->leastDistanceToZombie(getX(), getY()-2) > farthestDistance){
+                farthestDistance = getWorld()->leastDistanceToZombie(getX(), getY()-2);
                 tempDirection = down;
             }
         }if(isAgentFreeDirection(getX(), getY()+2)){
-            if(getWorld()->distanceToZombie(getX(), getY()+2) > farthestDistance){
-                farthestDistance = getWorld()->distanceToZombie(getX(), getY()+2);
+            if(getWorld()->leastDistanceToZombie(getX(), getY()+2) > farthestDistance){
+                farthestDistance = getWorld()->leastDistanceToZombie(getX(), getY()+2);
                 tempDirection = up;
             }
         }

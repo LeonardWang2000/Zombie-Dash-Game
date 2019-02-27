@@ -22,13 +22,16 @@ public:
     bool isCitizenLeft();
     void setLevelDone();
     int distanceToPlayer(int x, int y);
-    int distanceToZombie(int x, int y);
+    int leastDistanceToZombie(int x, int y);
+    int leastDistanceToCitizen(int x, int y);
     int getPenelopeX();
     int getPenelopeY();
     bool checkPositionFreePlayer(int x, int y);
     int getScore();
     void addToScore(int number);
     void addActor(Actor* a);
+    void activateOnAppropriateActors(Actor* a);
+    bool isZombieVomitTriggerAt(double x, double y) const;
 //    void setCitizenDead(int x, int y);
 private:
     int distanceToActor(int x1, int x2, int y1, int y2);

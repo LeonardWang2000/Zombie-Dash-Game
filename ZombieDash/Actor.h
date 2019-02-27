@@ -56,7 +56,6 @@ public:
     virtual void doSomething();
     virtual void activateIfAppropiate(Actor* a);
 private:
-    Citizen* citizen;
 };
 
 
@@ -150,6 +149,8 @@ public:
     virtual void doSomething();
     int getMovementPlan();
     void setMovementPlan(int plan);
+    bool addVomitIfAppropiate(int vomit_x, int vomit_y);
+    virtual void doDifferentZombieStuff() = 0;
 private:
     int movementPlan;
 };
@@ -157,11 +158,14 @@ private:
 class SmartZombie: public Zombie{
 public:
     SmartZombie(int x_location, int y_location, StudentWorld* temp);
+    virtual void doSomething();
+    virtual void doDifferentZombieStuff();
 };
 
 class DumbZombie: public Zombie{
 public:
     DumbZombie(int x_location, int y_location, StudentWorld* temp);
     virtual void doSomething();
+    virtual void doDifferentZombieStuff();
 };
 #endif // ACTOR_H_

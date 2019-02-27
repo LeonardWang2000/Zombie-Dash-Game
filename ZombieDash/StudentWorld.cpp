@@ -121,7 +121,7 @@ bool StudentWorld::checkObjectOverlap(int x, int y, Actor* temp, int overlap){
 
 bool StudentWorld::checkPlayerOverlap(int x, int y, int overlap, Actor* temp){
     if(checkObjectOverlap(x, y, player, overlap)){
-        temp->activateIfAppropiate(player);
+        activateOnAppropriateActors(temp);
         return true;
     }
     return false;
@@ -131,11 +131,21 @@ bool StudentWorld::checkCitizenOverlap(Actor *temp, int overlap){
     for(int i = 0; i < allActors.size(); i++){
         if(allActors[i]->isHuman()){
             if(checkObjectOverlap(temp->getX(), temp->getY(), allActors[i], overlap)){
-                temp->activateIfAppropiate(allActors[i]);
+                activateOnAppropriateActors(temp);
                 return true;
             }
         }
     }
+    return false;
+}
+
+bool StudentWorld::isZombieVomitTriggerAt(double x, double y) const{
+    for(int i = 0; i < allActors.size(); i++){
+        if(allActors[i]->getX() == x && allActors[i]->getY() == y && allActors[i]->isHuman())
+            return true;
+    }
+    if(player->getX() == x && player->getY() == y)
+        return true;
     return false;
 }
 
@@ -150,12 +160,11 @@ bool StudentWorld::isCitizenLeft(){
 int StudentWorld::distanceToPlayer(int x, int y){
     return distanceToActor(x, player->getX(), y, player->getY());
 }
+//change the check overlap functions
+void StudentWorld::activateOnAppropriateActors(Actor* a){
+    a->activateIfAppropiate(a);
+}
 
-//void StudentWorld::setCitizenDead(int x, int y){
-//    for(int i = 0; i < allActors.size(); i++){
-//        if(x == allActors)
-//    }
-//}
 
 int StudentWorld::distanceToActor(int x1, int x2, int y1, int y2){
     int x = x1-x2;
@@ -164,7 +173,7 @@ int StudentWorld::distanceToActor(int x1, int x2, int y1, int y2){
 }
 
 //make a distance to specific actor instance method to call if multiple distance to things need to be called
-int StudentWorld::distanceToZombie(int x, int y){
+int StudentWorld::leastDistanceToZombie(int x, int y){
     int leastDistance = 1000;
     for(int i = 0; i < allActors.size(); i++){
         if(allActors[i]->isZombie()){
@@ -175,6 +184,19 @@ int StudentWorld::distanceToZombie(int x, int y){
     }
     return leastDistance;
 }
+
+int StudentWorld::leastDistanceToCitizen(int x, int y){
+    int leastDistance = 1000;
+    for(int i = 0; i < allActors.size(); i++){
+        if(allActors[i]->isHuman()){
+            if(distanceToActor(x, allActors[i]->getX(), y, allActors[i]->getY()) < leastDistance){
+                leastDistance = distanceToActor(x, allActors[i]->getX(), y, allActors[i]->getY());
+            }
+        }
+    }
+    return leastDistance;
+}
+
 void StudentWorld::addActor(Actor *a){
     allActors.push_back(a);
 }
@@ -225,7 +247,7 @@ void StudentWorld::setUpLevel(){
                         break;
                     }
                     case Level::dumb_zombie:{
-                        DumbZombie* dumbZombie = new DumbZombie(i*SPRITE_WIDTH, j*SPRITE_HEIGHT, this);
+                        Zombie* dumbZombie = new DumbZombie(i*SPRITE_WIDTH, j*SPRITE_HEIGHT, this);
                         allActors.push_back(dumbZombie);
                         break;
                     }
