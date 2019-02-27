@@ -2,7 +2,7 @@
 #include "StudentWorld.h"
 
 // Students:  Add code to this file, Actor.h, StudentWorld.h, and StudentWorld.cpp
-Actor::Actor(int imageID, int x_location, int y_location, Direction dir, int depth, double size, StudentWorld* temp):GraphObject(imageID, x_location, y_location, dir, depth, size){
+Actor::Actor(int imageID, double x_location, double y_location, Direction dir, int depth, int size, StudentWorld* temp):GraphObject(imageID, x_location, y_location, dir, depth, size){
     moveTo(x_location, y_location);
     world = temp;
     alive = true;
@@ -71,7 +71,7 @@ void Penelope::doSomething(){
 
 
 
-Wall::Wall(int x_location, int y_location, StudentWorld* temp):Actor(IID_WALL, x_location, y_location, 0, 0, 1, temp){}
+Wall::Wall(double x_location, double y_location, StudentWorld* temp):Actor(IID_WALL, x_location, y_location, 0, 0, 1, temp){}
 
 
 void Wall::doSomething(){
@@ -85,22 +85,22 @@ void Pit::doSomething(){
     
 }
 
-ActivatingObject::ActivatingObject(int imageID, int x_location, int y_location, Direction dir, StudentWorld* temp):Actor(imageID, x_location, y_location, dir, 0, 1, temp){
+ActivatingObject::ActivatingObject(int imageID, double x_location, double y_location, Direction dir, StudentWorld* temp):Actor(imageID, x_location, y_location, dir, 0, 1, temp){
     
 }
 
-Exit::Exit(int x_location, int y_location, StudentWorld* temp):ActivatingObject(IID_EXIT, x_location, y_location, right, temp){
+Exit::Exit(double x_location, double y_location, StudentWorld* temp):ActivatingObject(IID_EXIT, x_location, y_location, right, temp){
     
 }
 
 void ActivatingObject::doSomething(){
     
 }
-//Pit::Pit(int x_location, int y_location, StudentWorld* temp):Actor(IID_PIT, x_location, y_location, 0, 0, 1, temp){}
+//Pit::Pit(double x_location, double y_location, StudentWorld* temp):Actor(IID_PIT, x_location, y_location, 0, 0, 1, temp){}
 //
-//Flame:: Flame(int x_location, int y_location, StudentWorld* temp):Actor(IID_FLAME, x_location, y_location, right, 0, 1, temp){}
+//Flame:: Flame(double x_location, double y_location, StudentWorld* temp):Actor(IID_FLAME, x_location, y_location, right, 0, 1, temp){}
 //
-Vomit::Vomit(int x_location, int y_location, Direction dir, StudentWorld* temp):ActivatingObject(IID_VOMIT, x_location, y_location, dir, temp){}
+Vomit::Vomit(double x_location, double y_location, Direction dir, StudentWorld* temp):ActivatingObject(IID_VOMIT, x_location, y_location, dir, temp){}
 void Vomit::doSomething(){
     if(!isAlive()){
         return;
@@ -112,7 +112,6 @@ void Vomit::doSomething(){
     }
     if(getWorld()->checkPlayerOverlap(getX(), getY(), 10, this) || getWorld()->checkCitizenOverlap(this, 10)){
         //gets infected through activated
-        
     }
         
 }
@@ -136,7 +135,7 @@ bool Actor::getInfectionStatus(){
     return infectionStatus;
 }
 //depth of goodie is always one, direction right
-//Goodie::Goodie(int imageID, int x_location, int y_location, StudentWorld* temp):ActivatingObject(imageID, x_location, y_location, temp){
+//Goodie::Goodie(int imageID, double x_location, double y_location, StudentWorld* temp):ActivatingObject(imageID, x_location, y_location, temp){
 //    
 //}
 
@@ -145,15 +144,15 @@ void Agent::getDamage(){
 }
 
 //HUMANS--------------------------
-Human::Human(int imageID, int x_location, int y_location, StudentWorld* temp):Agent(imageID, x_location, y_location, temp){
+Human::Human(int imageID, double x_location, double y_location, StudentWorld* temp):Agent(imageID, x_location, y_location, temp){
     infectionCount = 0;
 }
 
-Penelope::Penelope(int x_location, int y_location, StudentWorld* temp):Human(IID_PLAYER, x_location, y_location, temp){
+Penelope::Penelope(double x_location, double y_location, StudentWorld* temp):Human(IID_PLAYER, x_location, y_location, temp){
     numberOfLives = 3;
 }
 
-Citizen::Citizen(int x_location, int y_location, StudentWorld* temp):Human(IID_CITIZEN, x_location, y_location, temp){
+Citizen::Citizen(double x_location, double y_location, StudentWorld* temp):Human(IID_CITIZEN, x_location, y_location, temp){
     
 }
 
@@ -166,14 +165,13 @@ bool Human::isHuman(){
 }
 
 bool Penelope::isHuman(){
-    //need to be false until all citizens are gone
     return true;
 }
 
-Agent::Agent(int imageID, int x_location, int y_location, StudentWorld* temp):Actor(imageID, x_location, y_location, 0, 0, 1, temp){
+Agent::Agent(int imageID, double x_location, double y_location, StudentWorld* temp):Actor(imageID, x_location, y_location, 0, 0, 1, temp){
     
 }
-bool Zombie::addVomitIfAppropiate(int vomit_x, int vomit_y){
+bool Zombie::addVomitIfAppropiate(double vomit_x, double vomit_y){
     if(getWorld()->isZombieVomitTriggerAt(vomit_x, vomit_y)){
         Vomit* vomit = new Vomit(vomit_x, vomit_y, up, getWorld());
         getWorld()->addActor(vomit);
@@ -182,7 +180,6 @@ bool Zombie::addVomitIfAppropiate(int vomit_x, int vomit_y){
     }
         if(getWorld()->checkPlayerOverlap(vomit_x, vomit_y, 10, this) || getWorld()->checkCitizenOverlap(this, 10)){
             if(randInt(1, 3) == 1){
-                std::cout << "A";
                 Vomit* vomit = new Vomit(vomit_x, vomit_y, up, getWorld());
                 getWorld()->addActor(vomit);
                 getWorld()->playSound(SOUND_ZOMBIE_VOMIT);
@@ -255,8 +252,8 @@ void Zombie::doSomething(){
     doDifferentZombieStuff();
 }
 void SmartZombie::doDifferentZombieStuff(){
-    int xOfClosest;
-    int yOfClosest;
+    double xOfClosest;
+    double yOfClosest;
     getWorld()->closestHuman(xOfClosest, yOfClosest, this);
     if(getMovementPlan() == 0){
         setMovementPlan(randInt(3, 10));
@@ -282,51 +279,26 @@ void SmartZombie::doDifferentZombieStuff(){
                     //if if citizen/penelope is above
                     if(yOfClosest > getY()){
                         //if we can move up
-                        if(getWorld()->checkPositionFree(getX(), getY()+1, this) && getWorld()->checkPositionFreePlayer(getX(), getY()+1)){
-                            setDirection(up);
-                            moveTo(getX(), getY()+1);
-                            setMovementPlan(getMovementPlan()-1);
-                            std::cout << "A" << std::endl;
-                            return;
-                        }
-                    }else{
+                        setDirection(up);
+                    }else if(yOfClosest < getY()){
                         //if citizen/penelope is below and we can move there
-                        if(getWorld()->checkPositionFree(getX(), getY()-1, this) && getWorld()->checkPositionFreePlayer(getX(), getY()-1)){
-                            setDirection(down);
-                            moveTo(getX(), getY()-1);
-                            setMovementPlan(getMovementPlan()-1);
-                            std::cout << "B" << std::endl;
-                            return;
-                        }
+                        setDirection(down);
                     }
                     
                 }
                 if(getY() == yOfClosest){
                     //if citizen/penelope is on the right
                     if(xOfClosest > getX()){
-                        if(getWorld()->checkPositionFree(getX()+1, getY(), this) && getWorld()->checkPositionFreePlayer(getX()+1, getY())){
-                            setDirection(right);
-                            moveTo(getX()+1, getY());
-                            setMovementPlan(getMovementPlan()-1);
-                            std::cout << "C" << std::endl;
-                            return;
-                        }
-                    }else{
+                        setDirection(right);
+                    }else if(xOfClosest < getX()){
                         //if citizen/penelope is on the left
-                        if(getWorld()->checkPositionFree(getX()-1, getY(), this) && getWorld()->checkPositionFreePlayer(getX()-1, getY())){
-                            setDirection(left);
-                            moveTo(getX()-1, getY());
-                            setMovementPlan(getMovementPlan()-1);
-                            std::cout << "D" << std::endl;
-                            return;
-                        }
+                        setDirection(left);
                     }
                 }
             }
-            std::cout << "E" << std::endl;
             if(getX() != xOfClosest && getY() != yOfClosest){
-                int yChange;
-                int xChange;
+                int yChange = 0;
+                int xChange = 0;
                 if(yOfClosest > getY())
                     yChange = up;
                 else
@@ -335,44 +307,16 @@ void SmartZombie::doDifferentZombieStuff(){
                     xChange = right;
                 else
                     xChange = left;
-                std::cout << "a";
                 if(randInt(0, 1) == 0){
-                    if(isAgentFreeDirection(getX(), getY() + appropiateMovementDirection(yChange, 1))){
-                        setDirection(yChange);
-                        moveTo(getX(), getY()+appropiateMovementDirection(yChange, 1));
-                        setMovementPlan(getMovementPlan()-1);
-                        return;
-                    }else{
-                        if(isAgentFreeDirection(getX() + appropiateMovementDirection(xChange, 1), getY())){
-                            setDirection(xChange);
-                            moveTo(getX() + appropiateMovementDirection(xChange, 1), getY());
-                            setMovementPlan(getMovementPlan()-1);
-                            return;
-                        }
-                    }
-                    
+                    setDirection(yChange);
                 }
                 else{
-                    std::cout << "F" << std::endl;
-                    if(isAgentFreeDirection(getX() + appropiateMovementDirection(xChange, 1), getY())){
-                        setDirection(xChange);
-                        moveTo(getX() + appropiateMovementDirection(xChange, 1), getY());
-                        setMovementPlan(getMovementPlan()-1);
-                        return;
-                    }else{
-                        if(isAgentFreeDirection(getX(), getY() + appropiateMovementDirection(yChange, 2))){
-                            setDirection(yChange);
-                            moveTo(getX(), getY()+appropiateMovementDirection(yChange, 1));
-                            setMovementPlan(getMovementPlan()-1);
-                            return;
-                        }
-                    }
+                    setDirection(xChange);
                 }
                 
             }
         }
     }
-    std::cout << "G" << std::endl;
     if(getDirection() == right || getDirection() == left){
         if(isAgentFreeDirection(getX() + appropiateMovementDirection(getDirection(), 1), getY())){
             moveTo(getX() + appropiateMovementDirection(getDirection(), 1), getY());
@@ -389,15 +333,15 @@ void SmartZombie::doDifferentZombieStuff(){
     setMovementPlan(0);
     
 }
-Zombie::Zombie(int x_location, int y_location, StudentWorld* temp):Agent(IID_ZOMBIE, x_location, y_location, temp){
+Zombie::Zombie(double x_location, double y_location, StudentWorld* temp):Agent(IID_ZOMBIE, x_location, y_location, temp){
     movementPlan = 0;
 }
 
-SmartZombie::SmartZombie(int x_location, int y_location, StudentWorld* temp):Zombie(x_location, y_location, temp){
+SmartZombie::SmartZombie(double x_location, double y_location, StudentWorld* temp):Zombie(x_location, y_location, temp){
     
 }
 
-DumbZombie::DumbZombie(int x_location, int y_location, StudentWorld* temp):Zombie(x_location, y_location, temp){
+DumbZombie::DumbZombie(double x_location, double y_location, StudentWorld* temp):Zombie(x_location, y_location, temp){
     
 }
 
@@ -460,8 +404,8 @@ void Citizen::doSomething(){
     if(getTickCount()%2==0){
         return;
     }
-    int dist_p = getWorld()->distanceToPlayer(getX(), getY());
-    int dist_z = getWorld()->leastDistanceToZombie(getX(), getY());
+    double dist_p = getWorld()->distanceToPlayer(getX(), getY());
+    double dist_z = getWorld()->leastDistanceToZombie(getX(), getY());
     if(dist_p < dist_z && dist_p <= 80){
         if(getX() == getWorld()->getPenelopeX() || getY() == getWorld()->getPenelopeY()){
         //if same row
@@ -544,11 +488,12 @@ void Citizen::doSomething(){
     }
     }
     if(dist_z <= 80){
-        int farthestDistance = getWorld()->leastDistanceToZombie(getX(), getY());
+        double farthestDistance = getWorld()->leastDistanceToZombie(getX(), getY());
         int tempDirection = -1;
         if(isAgentFreeDirection(getX()+2, getY())){
             if(getWorld()->leastDistanceToZombie(getX()+2, getY()) > farthestDistance){
                 farthestDistance = getWorld()->leastDistanceToZombie(getX()+2, getY());
+                tempDirection = right;
             }
         }if(isAgentFreeDirection(getX()-2, getY())){
             if(getWorld()->leastDistanceToZombie(getX()-2, getY()) > farthestDistance){
@@ -566,7 +511,7 @@ void Citizen::doSomething(){
                 tempDirection = up;
             }
         }
-        if(tempDirection > 0){
+        if(tempDirection >= 0){
             setDirection(tempDirection);
             if(tempDirection == up || tempDirection == down){
                 moveTo(getX(), getY() + appropiateMovementDirection(tempDirection, 2));
@@ -580,13 +525,13 @@ void Citizen::doSomething(){
     }
 }
 
-bool Agent::isAgentFreeDirection(int x, int y){
+bool Agent::isAgentFreeDirection(double x, double y){
     if(getWorld()->checkPositionFree(x, y, this) && getWorld()->checkPositionFreePlayer(x, y))
         return true;
     return false;
 }
 //helps add the two pixels to the correct randomized direction
-int Agent:: appropiateMovementDirection(int change, int distance){
+double Agent:: appropiateMovementDirection(int change, double distance){
     switch(change){
         case right:
         case up:

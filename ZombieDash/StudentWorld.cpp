@@ -35,6 +35,10 @@ int StudentWorld::move()
     // The term "actors" refers to all zombies, Penelope, goodies,
     // pits, flames, vomit, landmines, etc.
     // Give each actor a chance to do something, including Penelope
+    ostringstream oss;
+    oss << "Score: " << getScore() << "  Level: " << getLevel() << "  Lives: " << getLives() << "  Vacc:  " << "?" << "   Flames: ?  " << "  Mines:  ?  " << "  Infected:   ?";
+    string s = oss.str();
+    setGameStatText(s);
     for(int i = 0; i< allActors.size(); i++)
     {
         if (allActors[i]->isAlive())
@@ -82,9 +86,9 @@ StudentWorld::~StudentWorld(){
     cleanUp();
 }
 
-bool StudentWorld::checkPositionFree(int x, int y, Actor* temp){
-    int x_distance;
-    int y_distance;
+bool StudentWorld::checkPositionFree(double x, double y, Actor* temp){
+    double x_distance;
+    double y_distance;
     for(int i = 0; i < allActors.size(); i++){
         x_distance = allActors[i]->getX()+SPRITE_WIDTH-1;
         y_distance = allActors[i]->getY()+SPRITE_HEIGHT-1;
@@ -99,7 +103,7 @@ bool StudentWorld::checkPositionFree(int x, int y, Actor* temp){
     return true;
 }
 
-bool StudentWorld::checkPositionFreePlayer(int x, int y){
+bool StudentWorld::checkPositionFreePlayer(double x, double y){
     if((x <= player->getX() + SPRITE_WIDTH-1) && x+SPRITE_WIDTH-1 >= player->getX() && (y <= player->getY() + SPRITE_HEIGHT-1) && y+SPRITE_HEIGHT-1 >= player->getY()){
         return false;
     }
@@ -107,28 +111,28 @@ bool StudentWorld::checkPositionFreePlayer(int x, int y){
 }
 
 //x represents x value you want to goto, actor is this actor
-bool StudentWorld::checkObjectOverlap(int x, int y, Actor* temp, int overlap){
+bool StudentWorld::checkObjectOverlap(double x, double y, Actor* temp, int overlap){
     
     
-    int centerX = (temp->getX()) - x;
-    int centerY = (temp->getY()) - y;
-    int distance = sqrt(centerX*centerX + centerY*centerY);
+    double centerX = (temp->getX()) - x;
+    double centerY = (temp->getY()) - y;
+    double distance = sqrt(centerX*centerX + centerY*centerY);
     if(distance <= overlap){
         return true;
     }
     return false;
 }
 
-bool StudentWorld::checkPlayerOverlap(int x, int y, int overlap, Actor* temp){
+bool StudentWorld::checkPlayerOverlap(double x, double y, int overlap, Actor* temp){
     if(checkObjectOverlap(x, y, player, overlap)){
-        activateOnAppropriateActors(temp);
+        temp->activateIfAppropiate(player);
         return true;
     }
     return false;
 }
 
-void StudentWorld::closestHuman(int &x, int &y, Actor *temp){
-    int leastDistance = 1000;
+void StudentWorld::closestHuman(double &x, double &y, Actor *temp){
+    double leastDistance = 1000;
     for(int i = 0; i < allActors.size(); i++){
         if(allActors[i]->isHuman()){
             if(distanceToActor(temp->getX(), allActors[i]->getX(), temp->getY(), allActors[i]->getY()) < leastDistance){
@@ -138,17 +142,18 @@ void StudentWorld::closestHuman(int &x, int &y, Actor *temp){
             }
         }
     }
-    if(player->getX() < x)
+    if(distanceToPlayer(temp->getX(), temp->getY()) < leastDistance){
         x = player->getX();
-    if(player->getY() < y)
         y = player->getY();
+    }
+  
 }
 
 bool StudentWorld::checkCitizenOverlap(Actor *temp, int overlap){
     for(int i = 0; i < allActors.size(); i++){
         if(allActors[i]->isHuman()){
             if(checkObjectOverlap(temp->getX(), temp->getY(), allActors[i], overlap)){
-                activateOnAppropriateActors(temp);
+                temp->activateIfAppropiate(allActors[i]);
                 return true;
             }
         }
@@ -174,7 +179,7 @@ bool StudentWorld::isCitizenLeft(){
     return false;
 }
 
-int StudentWorld::distanceToPlayer(int x, int y){
+double StudentWorld::distanceToPlayer(double x, double y){
     return distanceToActor(x, player->getX(), y, player->getY());
 }
 //change the check overlap functions
@@ -183,15 +188,15 @@ void StudentWorld::activateOnAppropriateActors(Actor* a){
 }
 
 
-int StudentWorld::distanceToActor(int x1, int x2, int y1, int y2){
-    int x = x1-x2;
-    int y = y1-y2;
+double StudentWorld::distanceToActor(double x1, double x2, double y1, double y2){
+    double x = x1-x2;
+    double y = y1-y2;
     return sqrt(x*x + y*y);
 }
 
 //make a distance to specific actor instance method to call if multiple distance to things need to be called
-int StudentWorld::leastDistanceToZombie(int x, int y){
-    int leastDistance = 1000;
+double StudentWorld::leastDistanceToZombie(double x, double y){
+    double leastDistance = 1000;
     for(int i = 0; i < allActors.size(); i++){
         if(allActors[i]->isZombie()){
             if(distanceToActor(x, allActors[i]->getX(), y, allActors[i]->getY()) < leastDistance){

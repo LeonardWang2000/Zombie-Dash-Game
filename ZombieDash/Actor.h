@@ -9,7 +9,7 @@ class Citizen;
 class Actor : public GraphObject{
 public:
     //might not need dir, depth, size
-    Actor(int imageID, int x_location, int y_location, Direction dir, int depth, double size, StudentWorld* temp);
+    Actor(int imageID, double x_location, double y_location, Direction dir, int depth, int size, StudentWorld* temp);
     virtual void doSomething() = 0;
     StudentWorld* getWorld();
     //most are default alive
@@ -38,7 +38,7 @@ private:
 
 class Wall: public Actor{
 public:
-    Wall(int x_location, int y_location, StudentWorld* temp);
+    Wall(double x_location, double y_location, StudentWorld* temp);
     //walls do something does nothing
     virtual void doSomething();
     virtual bool canBeMovedOnto();
@@ -46,13 +46,13 @@ public:
 //need to put this under activating object
 class ActivatingObject: public Actor{
 public:
-    ActivatingObject(int imageID, int x_location, int y_location, Direction dir, StudentWorld*temp);
+    ActivatingObject(int imageID, double x_location, double y_location, Direction dir, StudentWorld*temp);
     virtual void doSomething();
 };
 
 class Exit: public ActivatingObject{
 public:
-    Exit(int x_location, int y_location, StudentWorld* temp);
+    Exit(double x_location, double y_location, StudentWorld* temp);
     virtual void doSomething();
     virtual void activateIfAppropiate(Actor* a);
 private:
@@ -63,19 +63,19 @@ private:
 
 
 class Flame: public ActivatingObject{
-//    Flame(int x_location, int y_location, StudentWorld* temp);
+//    Flame(double x_location, double y_location, StudentWorld* temp);
     virtual void doSomething();
 };
 
 class Vomit: public ActivatingObject{
 public:
-    Vomit(int x_location, int y_location, Direction dir, StudentWorld* temp);
+    Vomit(double x_location, double y_location, Direction dir, StudentWorld* temp);
     virtual void doSomething();
     virtual void activateIfAppropiate(Actor*a);
 };
 
 class Pit: public ActivatingObject{
-//    Pit(int x_location, int y_location, StudentWorld* temp);
+//    Pit(double x_location, double y_location, StudentWorld* temp);
     virtual void doSomething();
 };
 
@@ -85,17 +85,17 @@ class Landmine:public ActivatingObject{
 //ALL Agent/DAMAGABLE ITEMS--------------------------------------
 class Agent: public Actor{
 public:
-    Agent(int imageID, int x_location, int y_location, StudentWorld* temp);
+    Agent(int imageID, double x_location, double y_location, StudentWorld* temp);
     virtual void getDamage();
     virtual bool canBeMovedOnto();
-    bool isAgentFreeDirection(int x, int y);
-    int appropiateMovementDirection(int change, int distance);
+    bool isAgentFreeDirection(double x, double y);
+    double appropiateMovementDirection(int change, double distance);
 private:
 };
 
 //All goodies--------------------------------------------
 class Goodie: public ActivatingObject{
-//    Goodie(int imageID, int x_location, int y_location, StudentWorld* temp);
+//    Goodie(int imageID, double x_location, double y_location, StudentWorld* temp);
 //    virtual bool canBeMovedOnto();
 };
 
@@ -115,7 +115,7 @@ class LandmineGoodie: public Goodie{
 //HUMANS------------------------------------------------
 class Human: public Agent{
 public:
-    Human(int imageID, int x_location, int y_location, StudentWorld* temp);
+    Human(int imageID, double x_location, double y_location, StudentWorld* temp);
     virtual bool isHuman();
     virtual bool beVomitedOnIfAppropriate();
     void incrementInfectionCount();
@@ -126,14 +126,14 @@ private:
 //CITIZEN
 class Citizen: public Human{
 public:
-    Citizen(int x_location, int y_location, StudentWorld* temp);
+    Citizen(double x_location, double y_location, StudentWorld* temp);
     virtual void doSomething();
 private:
 };
 //PENELOPE
 class Penelope: public Human{   
 public:
-    Penelope(int x_location, int y_location, StudentWorld* temp);
+    Penelope(double x_location, double y_location, StudentWorld* temp);
     virtual void doSomething();
     virtual bool isHuman();
 private:
@@ -144,12 +144,12 @@ private:
 //ZOMBIES--------------------
 class Zombie: public Agent{
 public:
-    Zombie(int x_location, int y_location, StudentWorld* temp);
+    Zombie(double x_location, double y_location, StudentWorld* temp);
     virtual bool isZombie();
     virtual void doSomething();
     int getMovementPlan();
     void setMovementPlan(int plan);
-    bool addVomitIfAppropiate(int vomit_x, int vomit_y);
+    bool addVomitIfAppropiate(double vomit_x, double vomit_y);
     virtual void doDifferentZombieStuff() = 0;
 private:
     int movementPlan;
@@ -157,14 +157,14 @@ private:
 
 class SmartZombie: public Zombie{
 public:
-    SmartZombie(int x_location, int y_location, StudentWorld* temp);
+    SmartZombie(double x_location, double y_location, StudentWorld* temp);
     virtual void doSomething();
     virtual void doDifferentZombieStuff();
 };
 
 class DumbZombie: public Zombie{
 public:
-    DumbZombie(int x_location, int y_location, StudentWorld* temp);
+    DumbZombie(double x_location, double y_location, StudentWorld* temp);
     virtual void doSomething();
     virtual void doDifferentZombieStuff();
 };
