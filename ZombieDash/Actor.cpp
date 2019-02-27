@@ -25,8 +25,10 @@ StudentWorld* Actor::getWorld(){
 
 Actor::~Actor(){
 }
-
 void Penelope::doSomething(){
+    Human::doSomething();
+}
+void Penelope::doDifferentHumanStuff(){
         int ch;
         if (getWorld()->getKey(ch))
         {
@@ -135,9 +137,13 @@ bool Actor::getInfectionStatus(){
     return infectionStatus;
 }
 //depth of goodie is always one, direction right
-//Goodie::Goodie(int imageID, double x_location, double y_location, StudentWorld* temp):ActivatingObject(imageID, x_location, y_location, temp){
-//    
-//}
+Goodie::Goodie(int imageID, double x_location, double y_location, StudentWorld* temp):ActivatingObject(imageID, x_location, y_location, right, temp){
+    
+}
+
+VaccineGoodie::VaccineGoodie(double x_location, double y_location, StudentWorld* temp):Goodie(IID_VACCINE_GOODIE, x_location, y_location, temp){
+    
+}
 
 void Agent::getDamage(){
     setDead();
@@ -378,7 +384,7 @@ void Human::incrementInfectionCount(){
 void SmartZombie::doSomething(){
     Zombie::doSomething();
 }
-void Citizen::doSomething(){
+void Human::doSomething(){
     if(!isAlive()){
         return;
     }
@@ -404,88 +410,91 @@ void Citizen::doSomething(){
     if(getTickCount()%2==0){
         return;
     }
+    doDifferentHumanStuff();
+}
+void Citizen::doDifferentHumanStuff(){
     double dist_p = getWorld()->distanceToPlayer(getX(), getY());
     double dist_z = getWorld()->leastDistanceToZombie(getX(), getY());
     if(dist_p < dist_z && dist_p <= 80){
         if(getX() == getWorld()->getPenelopeX() || getY() == getWorld()->getPenelopeY()){
-        //if same row
-        if(getX() == getWorld()->getPenelopeX()){
-            //if if penelope is above
-            if(getWorld()->getPenelopeY() > getY()){
-                //if we can move up
-                if(getWorld()->checkPositionFree(getX(), getY()+2, this) && getWorld()->checkPositionFreePlayer(getX(), getY()+2)){
-                    setDirection(up);
-                    moveTo(getX(), getY()+2);
-                    return;
+            //if same row
+            if(getX() == getWorld()->getPenelopeX()){
+                //if if penelope is above
+                if(getWorld()->getPenelopeY() > getY()){
+                    //if we can move up
+                    if(getWorld()->checkPositionFree(getX(), getY()+2, this) && getWorld()->checkPositionFreePlayer(getX(), getY()+2)){
+                        setDirection(up);
+                        moveTo(getX(), getY()+2);
+                        return;
+                    }
+                }else{
+                    //if penelope is below and we can move there
+                    if(getWorld()->checkPositionFree(getX(), getY()-2, this) && getWorld()->checkPositionFreePlayer(getX(), getY()-2)){
+                        setDirection(down);
+                        moveTo(getX(), getY()-2);
+                        return;
+                    }
                 }
-            }else{
-                //if penelope is below and we can move there
-                if(getWorld()->checkPositionFree(getX(), getY()-2, this) && getWorld()->checkPositionFreePlayer(getX(), getY()-2)){
-                    setDirection(down);
-                    moveTo(getX(), getY()-2);
-                    return;
-                }
-            }
                 
-        }
-        if(getY() == getWorld()->getPenelopeY()){
-            //if penelope is on the right
-            if(getWorld()->getPenelopeX() > getX()){
-                if(getWorld()->checkPositionFree(getX()+2, getY(), this) && getWorld()->checkPositionFreePlayer(getX()+2, getY())){
-                    setDirection(right);
-                    moveTo(getX()+2, getY());
-                    return;
-                }
-            }else{
-                //if penelope is on the left
-                if(getWorld()->checkPositionFree(getX()-2, getY(), this) && getWorld()->checkPositionFreePlayer(getX()-2, getY())){
-                    setDirection(left);
-                    moveTo(getX()-2, getY());
-                    return;
+            }
+            if(getY() == getWorld()->getPenelopeY()){
+                //if penelope is on the right
+                if(getWorld()->getPenelopeX() > getX()){
+                    if(getWorld()->checkPositionFree(getX()+2, getY(), this) && getWorld()->checkPositionFreePlayer(getX()+2, getY())){
+                        setDirection(right);
+                        moveTo(getX()+2, getY());
+                        return;
+                    }
+                }else{
+                    //if penelope is on the left
+                    if(getWorld()->checkPositionFree(getX()-2, getY(), this) && getWorld()->checkPositionFreePlayer(getX()-2, getY())){
+                        setDirection(left);
+                        moveTo(getX()-2, getY());
+                        return;
+                    }
                 }
             }
-        }
         }
         if(getX() != getWorld()->getPenelopeX() && getY() != getWorld()->getPenelopeY()){
-        int yChange;
-        int xChange;
-        if(getWorld()->getPenelopeY() > getY())
-            yChange = up;
-        else
-            yChange = down;
-        if(getWorld()->getPenelopeX() > getX())
-            xChange = right;
-        else
-            xChange = left;
-        if(randInt(0, 1) == 0){
-            if(isAgentFreeDirection(getX(), getY() + appropiateMovementDirection(yChange, 2))){
-                setDirection(yChange);
-                moveTo(getX(), getY()+appropiateMovementDirection(yChange, 2));
-                return;
-            }else{
-                if(isAgentFreeDirection(getX() + appropiateMovementDirection(xChange, 2), getY())){
-                    setDirection(xChange);
-                    moveTo(getX() + appropiateMovementDirection(xChange, 2), getY());
-                    return;
-                }
-            }
-                
-        }
-        else{
-            if(isAgentFreeDirection(getX() + appropiateMovementDirection(xChange, 2), getY())){
-                setDirection(xChange);
-                moveTo(getX() + appropiateMovementDirection(xChange, 2), getY());
-                return;
-            }else{
+            int yChange;
+            int xChange;
+            if(getWorld()->getPenelopeY() > getY())
+                yChange = up;
+            else
+                yChange = down;
+            if(getWorld()->getPenelopeX() > getX())
+                xChange = right;
+            else
+                xChange = left;
+            if(randInt(0, 1) == 0){
                 if(isAgentFreeDirection(getX(), getY() + appropiateMovementDirection(yChange, 2))){
                     setDirection(yChange);
                     moveTo(getX(), getY()+appropiateMovementDirection(yChange, 2));
                     return;
+                }else{
+                    if(isAgentFreeDirection(getX() + appropiateMovementDirection(xChange, 2), getY())){
+                        setDirection(xChange);
+                        moveTo(getX() + appropiateMovementDirection(xChange, 2), getY());
+                        return;
+                    }
+                }
+                
+            }
+            else{
+                if(isAgentFreeDirection(getX() + appropiateMovementDirection(xChange, 2), getY())){
+                    setDirection(xChange);
+                    moveTo(getX() + appropiateMovementDirection(xChange, 2), getY());
+                    return;
+                }else{
+                    if(isAgentFreeDirection(getX(), getY() + appropiateMovementDirection(yChange, 2))){
+                        setDirection(yChange);
+                        moveTo(getX(), getY()+appropiateMovementDirection(yChange, 2));
+                        return;
+                    }
                 }
             }
+            
         }
-        
-    }
     }
     if(dist_z <= 80){
         double farthestDistance = getWorld()->leastDistanceToZombie(getX(), getY());
@@ -523,6 +532,9 @@ void Citizen::doSomething(){
             }
         }
     }
+}
+void Citizen::doSomething(){
+    Human::doSomething();
 }
 
 bool Agent::isAgentFreeDirection(double x, double y){

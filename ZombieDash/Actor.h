@@ -95,20 +95,24 @@ private:
 
 //All goodies--------------------------------------------
 class Goodie: public ActivatingObject{
-//    Goodie(int imageID, double x_location, double y_location, StudentWorld* temp);
+public:
+    Goodie(int imageID, double x_location, double y_location, StudentWorld* temp);
 //    virtual bool canBeMovedOnto();
 };
 
 class VaccineGoodie: public Goodie{
-    
+public:
+    VaccineGoodie(double x_location, double y_location, StudentWorld* temp);
 };
 
 class GasCanGoodie: public Goodie{
-    
+public:
+    GasCanGoodie(double x_location, double y_location, StudentWorld* temp);
 };
 
 class LandmineGoodie: public Goodie{
-    
+public:
+    LandmineGoodie(double x_location, double y_location, StudentWorld* temp);
 };
 
 
@@ -120,6 +124,8 @@ public:
     virtual bool beVomitedOnIfAppropriate();
     void incrementInfectionCount();
     int getInfectionCount();
+    void doSomething();
+    virtual void doDifferentHumanStuff() = 0;
 private:
     int infectionCount;
 };
@@ -128,6 +134,7 @@ class Citizen: public Human{
 public:
     Citizen(double x_location, double y_location, StudentWorld* temp);
     virtual void doSomething();
+    virtual void doDifferentHumanStuff();
 private:
 };
 //PENELOPE
@@ -136,6 +143,7 @@ public:
     Penelope(double x_location, double y_location, StudentWorld* temp);
     virtual void doSomething();
     virtual bool isHuman();
+    virtual void doDifferentHumanStuff();
 private:
     int flamethrowerCount;
     int numberOfLives;
