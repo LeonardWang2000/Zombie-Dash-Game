@@ -5,6 +5,8 @@
 #include "GameWorld.h"
 class StudentWorld;
 class Citizen;
+class Penelope;
+class Goodie;
 // Students:  Add code to this file, Actor.cpp, StudentWorld.h, and StudentWorld.cpp
 class Actor : public GraphObject{
 public:
@@ -21,7 +23,10 @@ public:
     virtual bool canBeMovedOnto();
     virtual void activateIfAppropiate(Actor* a);
     virtual bool beVomitedOnIfAppropriate();
+    virtual void pickUpGoodieIfAppropiate(Goodie* g);
     void setInfectionStatus();
+    virtual void dieByFallOrBurnIfAppropriate();
+    virtual bool blocksFlame() const;
     //move to agent
     void incrementTickCount();
     int getTickCount();
@@ -42,6 +47,7 @@ public:
     //walls do something does nothing
     virtual void doSomething();
     virtual bool canBeMovedOnto();
+    virtual bool blocksFlame() const;
 };
 //need to put this under activating object
 class ActivatingObject: public Actor{
@@ -55,6 +61,7 @@ public:
     Exit(double x_location, double y_location, StudentWorld* temp);
     virtual void doSomething();
     virtual void activateIfAppropiate(Actor* a);
+    virtual bool blocksFlame() const;
 private:
 };
 
@@ -63,8 +70,10 @@ private:
 
 
 class Flame: public ActivatingObject{
-//    Flame(double x_location, double y_location, StudentWorld* temp);
+public:
+    Flame(double x_location, double y_location, Direction dir, StudentWorld* temp);
     virtual void doSomething();
+    void activateIfAppropiate(Actor* temp);
 };
 
 class Vomit: public ActivatingObject{
@@ -75,11 +84,15 @@ public:
 };
 
 class Pit: public ActivatingObject{
-//    Pit(double x_location, double y_location, StudentWorld* temp);
+public:
+    Pit(double x_location, double y_location, StudentWorld* temp);
     virtual void doSomething();
+    virtual void activateIfAppropiate(Actor* a);
 };
 
 class Landmine:public ActivatingObject{
+public:
+    virtual void dieByFallOrBurnIfAppropriate();
 };
 
 //ALL Agent/DAMAGABLE ITEMS--------------------------------------
@@ -98,21 +111,28 @@ class Goodie: public ActivatingObject{
 public:
     Goodie(int imageID, double x_location, double y_location, StudentWorld* temp);
 //    virtual bool canBeMovedOnto();
+    virtual void doSomething();
+    virtual void giveGoodies(Penelope* p) = 0;
+    virtual void activateIfAppropiate(Actor*temp);
+    virtual void dieByFallOrBurnIfAppropriate();
 };
 
 class VaccineGoodie: public Goodie{
 public:
     VaccineGoodie(double x_location, double y_location, StudentWorld* temp);
+    virtual void giveGoodies(Penelope* p);
 };
 
 class GasCanGoodie: public Goodie{
 public:
     GasCanGoodie(double x_location, double y_location, StudentWorld* temp);
+    virtual void giveGoodies(Penelope* p);
 };
 
 class LandmineGoodie: public Goodie{
 public:
     LandmineGoodie(double x_location, double y_location, StudentWorld* temp);
+    virtual void giveGoodies(Penelope* p);
 };
 
 
@@ -135,6 +155,7 @@ public:
     Citizen(double x_location, double y_location, StudentWorld* temp);
     virtual void doSomething();
     virtual void doDifferentHumanStuff();
+    virtual void dieByFallOrBurnIfAppropriate();
 private:
 };
 //PENELOPE
@@ -144,9 +165,19 @@ public:
     virtual void doSomething();
     virtual bool isHuman();
     virtual void doDifferentHumanStuff();
+    void incrementVaccines(int amt);
+    void incrementLandmines(int amt);
+    void incrementFlameCharges(int amt);
+    int getFlameCharges();
+    int getVaccines();
+    int getLandmines();
+    virtual void pickUpGoodieIfAppropiate(Goodie* g);
+    virtual void dieByFallOrBurnIfAppropriate();
 private:
+    int createFlames();
     int flamethrowerCount;
-    int numberOfLives;
+    int vaccines;
+    int landmines;
 };
 
 //ZOMBIES--------------------
@@ -159,6 +190,7 @@ public:
     void setMovementPlan(int plan);
     bool addVomitIfAppropiate(double vomit_x, double vomit_y);
     virtual void doDifferentZombieStuff() = 0;
+    
 private:
     int movementPlan;
 };
@@ -168,6 +200,7 @@ public:
     SmartZombie(double x_location, double y_location, StudentWorld* temp);
     virtual void doSomething();
     virtual void doDifferentZombieStuff();
+    virtual void dieByFallOrBurnIfAppropriate();
 };
 
 class DumbZombie: public Zombie{
@@ -175,5 +208,6 @@ public:
     DumbZombie(double x_location, double y_location, StudentWorld* temp);
     virtual void doSomething();
     virtual void doDifferentZombieStuff();
+    virtual void dieByFallOrBurnIfAppropriate();
 };
 #endif // ACTOR_H_

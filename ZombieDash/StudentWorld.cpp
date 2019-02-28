@@ -36,17 +36,18 @@ int StudentWorld::move()
     // pits, flames, vomit, landmines, etc.
     // Give each actor a chance to do something, including Penelope
     ostringstream oss;
-    oss << "Score: " << getScore() << "  Level: " << getLevel() << "  Lives: " << getLives() << "  Vacc:  " << "?" << "   Flames: ?  " << "  Mines:  ?  " << "  Infected:   ?";
+    oss << "Score: " << getScore() << "  Level: " << getLevel() << "  Lives: " << getLives() << "  Vacc: " << player->getVaccines() << "  Flames: " << player->getFlameCharges()<< "  Mines: "<<player->getLandmines() << "  Infected: " << player->getInfectionCount();
     string s = oss.str();
     setGameStatText(s);
+    player->doSomething();
     for(int i = 0; i< allActors.size(); i++)
     {
         if (allActors[i]->isAlive())
         {
             // tell each actor to do something (e.g. move)
-            player->doSomething();
             allActors[i]->doSomething();
             if (!player->isAlive()){
+                decLives();
                 return GWSTATUS_PLAYER_DIED;
             }
 //            if (Penelope completed the current level)
@@ -111,7 +112,7 @@ bool StudentWorld::checkPositionFreePlayer(double x, double y){
 }
 
 //x represents x value you want to goto, actor is this actor
-bool StudentWorld::checkObjectOverlap(double x, double y, Actor* temp, int overlap){
+bool StudentWorld::checkObjectOverlap(double x, double y, Actor* temp, int overlap) const{
     
     
     double centerX = (temp->getX()) - x;
@@ -128,6 +129,7 @@ bool StudentWorld::checkPlayerOverlap(double x, double y, int overlap, Actor* te
         temp->activateIfAppropiate(player);
         return true;
     }
+    
     return false;
 }
 
@@ -184,9 +186,20 @@ double StudentWorld::distanceToPlayer(double x, double y){
 }
 //change the check overlap functions
 void StudentWorld::activateOnAppropriateActors(Actor* a){
-    a->activateIfAppropiate(a);
+    for(int i = 0; i < allActors.size(); i++){
+        if(checkObjectOverlap(a->getX(), a->getY(), allActors[i], 10))
+            a->activateIfAppropiate(allActors[i]);
+    }
+    if(checkObjectOverlap(a->getX(), a->getY(), player, 10))
+        a->activateIfAppropiate(player);
 }
-
+bool StudentWorld::isFlameBlockedAt(double x, double y) const{
+    for(int i = 0; i < allActors.size(); i++){
+        if(allActors[i]->blocksFlame() && checkObjectOverlap(x, y, allActors[i], 10))
+            return true;
+    }
+    return false;
+}
 
 double StudentWorld::distanceToActor(double x1, double x2, double y1, double y2){
     double x = x1-x2;
@@ -224,12 +237,7 @@ int StudentWorld::getPenelopeY(){
 void StudentWorld::setLevelDone(){
     levelDone = true;
 }
-int StudentWorld::getScore(){
-    return score;
-}
-void StudentWorld::addToScore(int number){
-    score += number;
-}
+
 void StudentWorld::setUpLevel(){
 //    only works up to ten levels
 //    ostringstream oss;
@@ -253,6 +261,22 @@ void StudentWorld::setUpLevel(){
                 switch (ge) // so x=80 and y=160
                 {
                     case Level::empty:{
+                        break;
+                    }
+                    
+                    case Level::vaccine_goodie:{
+                        VaccineGoodie* vaccine = new VaccineGoodie(i*SPRITE_WIDTH, j*SPRITE_HEIGHT, this);
+                        allActors.push_back(vaccine);
+                        break;
+                    }
+                    case Level::gas_can_goodie:{
+                        GasCanGoodie* gasCan = new GasCanGoodie(i*SPRITE_WIDTH, j*SPRITE_HEIGHT, this);
+                        allActors.push_back(gasCan);
+                        break;
+                    }
+                    case Level::landmine_goodie:{
+                        LandmineGoodie* landMine = new LandmineGoodie(i*SPRITE_WIDTH, j*SPRITE_HEIGHT, this);
+                        allActors.push_back(landMine);
                         break;
                     }
                     case Level::smart_zombie:{
@@ -285,8 +309,8 @@ void StudentWorld::setUpLevel(){
                         break;
                     }
                     case Level::pit:{
-//                        Pit* pit = new Pit
-//                        allActors.push_back(pit);
+                        Pit* pit = new Pit(i*SPRITE_WIDTH, j*SPRITE_HEIGHT, this);
+                        allActors.push_back(pit);
                         break;
                     }
                         // etc…

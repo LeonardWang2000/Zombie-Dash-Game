@@ -16,7 +16,7 @@ public:
     virtual void cleanUp();
     ~StudentWorld();
     bool checkPositionFree(double x, double y, Actor* temp);
-    bool checkObjectOverlap(double x, double y, Actor* temp, int overlap);
+    bool checkObjectOverlap(double x, double y, Actor* temp, int overlap) const;
     bool checkPlayerOverlap(double x, double y, int overlap, Actor* temp);
     bool checkCitizenOverlap(Actor* temp, int overlap);
     bool isCitizenLeft();
@@ -26,12 +26,11 @@ public:
     int getPenelopeX();
     int getPenelopeY();
     bool checkPositionFreePlayer(double x, double y);
-    int getScore();
-    void addToScore(int number);
     void addActor(Actor* a);
     void activateOnAppropriateActors(Actor* a);
     bool isZombieVomitTriggerAt(double x, double y) const;
     void closestHuman(double &x, double &y, Actor* temp);
+    bool isFlameBlockedAt(double x, double y) const;
 //    void setCitizenDead(double x, double y);
 private:
     double distanceToActor(double x1, double x2, double y1, double y2);

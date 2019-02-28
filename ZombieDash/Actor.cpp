@@ -9,6 +9,9 @@ Actor::Actor(int imageID, double x_location, double y_location, Direction dir, i
     tickCount = 0;
     infectionStatus = false;
 }
+void Actor::pickUpGoodieIfAppropiate(Goodie *g){
+    //does nothing
+}
 void Actor::doSomething(){
     return;
 }
@@ -61,17 +64,38 @@ void Penelope::doDifferentHumanStuff(){
                 case KEY_PRESS_ENTER:
                     break;
                 case KEY_PRESS_SPACE:
+                    if(getFlameCharges() > 0){
+                        incrementFlameCharges(-1);
+                        getWorld()->playSound(SOUND_PLAYER_FIRE);
+                        int posx;
+                        int posy;
+                        for(int i = 1; i < 4; i++){
+                            if(getDirection() == up){
+                                posy = i * SPRITE_HEIGHT + getY();
+                                posx = getX();
+                            }else if(getDirection() == down){
+                                posy = getY() - i * SPRITE_HEIGHT;
+                                posx = getX();
+                            }else if(getDirection() == right){
+                                posx = getX() + i * SPRITE_WIDTH;
+                                posy = getY();
+                            }else{
+                                posx = getX() - i * SPRITE_WIDTH;
+                                posy = getY();
+                            }
+                            if(getWorld()->isFlameBlockedAt(posx, posy))
+                                break;
+                            else{
+                                Flame* flame = new Flame(posx, posy, getDirection(), getWorld());
+                                getWorld()->addActor(flame);
+                            }
+                        }
+                    }
                     break;
                     // etc…
             }
         }
 }
-
-
-
-
-
-
 
 Wall::Wall(double x_location, double y_location, StudentWorld* temp):Actor(IID_WALL, x_location, y_location, 0, 0, 1, temp){}
 
@@ -80,11 +104,9 @@ void Wall::doSomething(){
     return;
 }
 
-void Flame::doSomething(){
-    
-}
+
 void Pit::doSomething(){
-    
+    getWorld()->activateOnAppropriateActors(this);
 }
 
 ActivatingObject::ActivatingObject(int imageID, double x_location, double y_location, Direction dir, StudentWorld* temp):Actor(imageID, x_location, y_location, dir, 0, 1, temp){
@@ -98,10 +120,52 @@ Exit::Exit(double x_location, double y_location, StudentWorld* temp):ActivatingO
 void ActivatingObject::doSomething(){
     
 }
-//Pit::Pit(double x_location, double y_location, StudentWorld* temp):Actor(IID_PIT, x_location, y_location, 0, 0, 1, temp){}
-//
-//Flame:: Flame(double x_location, double y_location, StudentWorld* temp):Actor(IID_FLAME, x_location, y_location, right, 0, 1, temp){}
-//
+Pit::Pit(double x_location, double y_location, StudentWorld* temp):ActivatingObject(IID_PIT, x_location, y_location, right, temp){}
+
+Flame:: Flame(double x_location, double y_location, Direction dir, StudentWorld* temp):ActivatingObject(IID_FLAME, x_location, y_location, dir, temp){}
+void Flame::doSomething(){
+    if(!isAlive())
+        return;
+    incrementTickCount();
+    if(getTickCount() == 2){
+        setDead();
+        return;
+    }
+        getWorld()->activateOnAppropriateActors(this);
+}
+
+void Actor::dieByFallOrBurnIfAppropriate(){
+    //do nothing
+}
+void DumbZombie::dieByFallOrBurnIfAppropriate(){
+    setDead();
+    getWorld()->playSound(SOUND_ZOMBIE_DIE);
+    getWorld()->increaseScore(1000);
+    if(randInt(1, 10) == 1){
+        VaccineGoodie* vaccine = new VaccineGoodie(getX(), getY(), getWorld());
+        getWorld()->addActor(vaccine);
+    }
+}
+void SmartZombie::dieByFallOrBurnIfAppropriate(){
+    setDead();
+    getWorld()->playSound(SOUND_ZOMBIE_DIE);
+    getWorld()->increaseScore(2000);
+}
+void Citizen::dieByFallOrBurnIfAppropriate(){
+    setDead();
+    getWorld()->playSound(SOUND_CITIZEN_DIE);
+    getWorld()->increaseScore(-1000);
+}
+void Penelope::dieByFallOrBurnIfAppropriate(){
+    setDead();
+    getWorld()->playSound(SOUND_PLAYER_DIE);
+}
+void Goodie::dieByFallOrBurnIfAppropriate(){
+    setDead();
+}
+void Landmine::dieByFallOrBurnIfAppropriate(){
+    //SET LANDMINE OFF
+}
 Vomit::Vomit(double x_location, double y_location, Direction dir, StudentWorld* temp):ActivatingObject(IID_VOMIT, x_location, y_location, dir, temp){}
 void Vomit::doSomething(){
     if(!isAlive()){
@@ -121,7 +185,6 @@ void Vomit::activateIfAppropiate(Actor *a){
     if(a->isHuman()){
         a->setInfectionStatus();
     }
-    
 }
 
 bool Actor::beVomitedOnIfAppropriate(){
@@ -137,25 +200,73 @@ bool Actor::getInfectionStatus(){
     return infectionStatus;
 }
 //depth of goodie is always one, direction right
-Goodie::Goodie(int imageID, double x_location, double y_location, StudentWorld* temp):ActivatingObject(imageID, x_location, y_location, right, temp){
-    
-}
+Goodie::Goodie(int imageID, double x_location, double y_location, StudentWorld* temp):ActivatingObject(imageID, x_location, y_location, right, temp){}
 
-VaccineGoodie::VaccineGoodie(double x_location, double y_location, StudentWorld* temp):Goodie(IID_VACCINE_GOODIE, x_location, y_location, temp){
-    
-}
+VaccineGoodie::VaccineGoodie(double x_location, double y_location, StudentWorld* temp):Goodie(IID_VACCINE_GOODIE, x_location, y_location, temp){}
 
+LandmineGoodie::LandmineGoodie(double x_location, double y_location, StudentWorld* temp):Goodie(IID_LANDMINE_GOODIE, x_location, y_location, temp){}
+
+GasCanGoodie::GasCanGoodie(double x_location, double y_location, StudentWorld* temp):Goodie(IID_GAS_CAN_GOODIE, x_location, y_location, temp){}
+
+void Goodie::activateIfAppropiate(Actor *temp){
+    temp->pickUpGoodieIfAppropiate(this);
+    dieByFallOrBurnIfAppropriate();
+}
+void Goodie::doSomething(){
+    if(!isAlive())
+        return;
+    if(getWorld()->checkPlayerOverlap(getX(), getY(), 10, this)){
+        getWorld()->increaseScore(50);
+        setDead();
+        getWorld()->playSound(SOUND_GOT_GOODIE);
+    }
+}
+void VaccineGoodie::giveGoodies(Penelope *p){
+    p->incrementVaccines(1);
+}
+void GasCanGoodie::giveGoodies(Penelope *p){
+    p->incrementFlameCharges(5);
+}
+void LandmineGoodie::giveGoodies(Penelope *p){
+    p->incrementLandmines(2);
+}
+int Penelope::getVaccines(){
+    return vaccines;
+}
+int Penelope::getLandmines(){
+    return landmines;
+}
+int Penelope::getFlameCharges(){
+    return flamethrowerCount;
+}
 void Agent::getDamage(){
     setDead();
+    //PLAY THE CORRECT MOTHERFUCKING SOUNDS DEPENDING ON WHO GODDAM DIED, PLAYER AND CITIZEN DIFFERENTIATION
 }
 
 //HUMANS--------------------------
 Human::Human(int imageID, double x_location, double y_location, StudentWorld* temp):Agent(imageID, x_location, y_location, temp){
     infectionCount = 0;
 }
-
+void Penelope::pickUpGoodieIfAppropiate(Goodie* g){
+    g->giveGoodies(this);
+}
 Penelope::Penelope(double x_location, double y_location, StudentWorld* temp):Human(IID_PLAYER, x_location, y_location, temp){
-    numberOfLives = 3;
+    flamethrowerCount = 0;
+    vaccines = 0;
+    landmines = 0;
+}
+
+void Penelope::incrementVaccines(int amt){
+    vaccines+=amt;
+}
+
+void Penelope::incrementLandmines(int amt){
+    landmines+=amt;
+}
+
+void Penelope::incrementFlameCharges(int amt){
+    flamethrowerCount+=amt;
 }
 
 Citizen::Citizen(double x_location, double y_location, StudentWorld* temp):Human(IID_CITIZEN, x_location, y_location, temp){
@@ -393,7 +504,7 @@ void Human::doSomething(){
         if(getInfectionCount() == 500){
             setDead();
             getWorld()->playSound(SOUND_ZOMBIE_BORN);
-            getWorld()->addToScore(-1000);
+            getWorld()->increaseScore(-1000);
             int rand = randInt(1, 10);
             if(rand >= 1 && rand <= 3){
                 SmartZombie* zombie = new SmartZombie(getX(), getY(), getWorld());
@@ -556,7 +667,12 @@ double Agent:: appropiateMovementDirection(int change, double distance){
     }
     return 0;
 }
-
+void Pit::activateIfAppropiate(Actor *a){
+    a->dieByFallOrBurnIfAppropriate();
+}
+void Flame::activateIfAppropiate(Actor *temp){
+    temp->dieByFallOrBurnIfAppropriate();
+}
 void Actor::incrementTickCount(){
     tickCount++;
 }
@@ -578,11 +694,12 @@ void Actor::activateIfAppropiate(Actor *a){
 }
 
 void Exit::activateIfAppropiate(Actor *a){
-    if(getWorld()->isCitizenLeft()){
+    if(getWorld()->isCitizenLeft() && isHuman()){
         a->setDead();
         return;
     }
-    getWorld()->setLevelDone();
+    if(isHuman())
+        getWorld()->setLevelDone();
     
 }
 
@@ -593,3 +710,13 @@ void Zombie::setMovementPlan(int plan){
 int Zombie::getMovementPlan(){
     return movementPlan;
 }
+bool Actor::blocksFlame() const{
+    return false;
+}
+bool Exit::blocksFlame() const{
+    return true;
+}
+bool Wall::blocksFlame() const{
+    return true;
+}
+
