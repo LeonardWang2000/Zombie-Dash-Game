@@ -15,7 +15,7 @@ public:
     virtual void doSomething() = 0;
     StudentWorld* getWorld();
     //most are default alive
-    virtual bool isAlive();
+    bool isAlive();
     void setDead();
     virtual ~Actor();
     virtual bool isHuman();
@@ -24,10 +24,11 @@ public:
     virtual void activateIfAppropiate(Actor* a);
     virtual bool beVomitedOnIfAppropriate();
     virtual void pickUpGoodieIfAppropiate(Goodie* g);
-    void setInfectionStatus();
+    virtual void setInfectionStatus(bool status);
     virtual void dieByFallOrBurnIfAppropriate();
     virtual bool blocksFlame() const;
-    //move to agent
+    virtual bool triggersOnlyActiveLandmines();
+    virtual void useExitIfAppropriate();
     void incrementTickCount();
     int getTickCount();
     bool getInfectionStatus();
@@ -52,10 +53,10 @@ public:
 //need to put this under activating object
 class ActivatingObject: public Actor{
 public:
-    ActivatingObject(int imageID, double x_location, double y_location, Direction dir, StudentWorld*temp);
+    ActivatingObject(int imageID, double x_location, double y_location, Direction dir, int depth, StudentWorld*temp);
     virtual void doSomething();
 };
-
+//exit can be activated
 class Exit: public ActivatingObject{
 public:
     Exit(double x_location, double y_location, StudentWorld* temp);
@@ -71,6 +72,7 @@ private:
 
 class Flame: public ActivatingObject{
 public:
+    //make sure it burns the correct items
     Flame(double x_location, double y_location, Direction dir, StudentWorld* temp);
     virtual void doSomething();
     void activateIfAppropiate(Actor* temp);
@@ -92,17 +94,27 @@ public:
 
 class Landmine:public ActivatingObject{
 public:
+    //locations to check
+    Landmine(double x_location, double y_location, StudentWorld* temp);
     virtual void dieByFallOrBurnIfAppropriate();
+    virtual void doSomething();
+    virtual void activateIfAppropiate(Actor* a);
+private:
+    bool active;
+    int safetyTicks;
+    void activateLandmine();
 };
 
 //ALL Agent/DAMAGABLE ITEMS--------------------------------------
 class Agent: public Actor{
 public:
+    //holder class for everything that moves
     Agent(int imageID, double x_location, double y_location, StudentWorld* temp);
     virtual void getDamage();
     virtual bool canBeMovedOnto();
     bool isAgentFreeDirection(double x, double y);
     double appropiateMovementDirection(int change, double distance);
+    virtual bool triggersOnlyActiveLandmines();
 private:
 };
 
@@ -122,7 +134,7 @@ public:
     VaccineGoodie(double x_location, double y_location, StudentWorld* temp);
     virtual void giveGoodies(Penelope* p);
 };
-
+//goodies check each one
 class GasCanGoodie: public Goodie{
 public:
     GasCanGoodie(double x_location, double y_location, StudentWorld* temp);
@@ -138,14 +150,18 @@ public:
 
 //HUMANS------------------------------------------------
 class Human: public Agent{
+    //holds citizen and penelope
 public:
     Human(int imageID, double x_location, double y_location, StudentWorld* temp);
     virtual bool isHuman();
     virtual bool beVomitedOnIfAppropriate();
     void incrementInfectionCount();
     int getInfectionCount();
+    void setInfectionCount(int count);
     void doSomething();
+    //pure virtual for functions that are necessary
     virtual void doDifferentHumanStuff() = 0;
+    virtual void playAppropiateSound() = 0;
 private:
     int infectionCount;
 };
@@ -155,7 +171,11 @@ public:
     Citizen(double x_location, double y_location, StudentWorld* temp);
     virtual void doSomething();
     virtual void doDifferentHumanStuff();
+    //checks response
     virtual void dieByFallOrBurnIfAppropriate();
+    virtual void setInfectionStatus(bool status);
+    virtual void useExitIfAppropriate();
+    virtual void playAppropiateSound();
 private:
 };
 //PENELOPE
@@ -173,6 +193,8 @@ public:
     int getLandmines();
     virtual void pickUpGoodieIfAppropiate(Goodie* g);
     virtual void dieByFallOrBurnIfAppropriate();
+    virtual void useExitIfAppropriate();
+    virtual void playAppropiateSound();
 private:
     int createFlames();
     int flamethrowerCount;
@@ -189,6 +211,7 @@ public:
     int getMovementPlan();
     void setMovementPlan(int plan);
     bool addVomitIfAppropiate(double vomit_x, double vomit_y);
+    //need pure virtual for later classes
     virtual void doDifferentZombieStuff() = 0;
     
 private:
@@ -198,8 +221,8 @@ private:
 class SmartZombie: public Zombie{
 public:
     SmartZombie(double x_location, double y_location, StudentWorld* temp);
-    virtual void doSomething();
     virtual void doDifferentZombieStuff();
+    //checks the correct response
     virtual void dieByFallOrBurnIfAppropriate();
 };
 

@@ -28,6 +28,7 @@ StudentWorld* Actor::getWorld(){
 
 Actor::~Actor(){
 }
+//does nothing
 void Penelope::doSomething(){
     Human::doSomething();
 }
@@ -38,6 +39,7 @@ void Penelope::doDifferentHumanStuff(){
             // user hit a key during this tick!
             switch (ch)
             {
+                    //changes responses based on what key is hit
                 case KEY_PRESS_LEFT:
                     setDirection(left);
                     if(getWorld()->checkPositionFree(getX()-4, getY(), this)){
@@ -60,8 +62,17 @@ void Penelope::doDifferentHumanStuff(){
                         moveTo(getX(), getY()-4);
                     break;
                 case KEY_PRESS_TAB:
+                    if(getLandmines() > 0){
+                        getWorld()->addActor(new Landmine(getX(), getY(), getWorld()));
+                        incrementLandmines(-1);
+                    }
                     break;
                 case KEY_PRESS_ENTER:
+                    if(getVaccines() > 0){
+                        incrementVaccines(-1);
+                        setInfectionStatus(false);
+                        setInfectionCount(0);
+                    }
                     break;
                 case KEY_PRESS_SPACE:
                     if(getFlameCharges() > 0){
@@ -96,9 +107,11 @@ void Penelope::doDifferentHumanStuff(){
             }
         }
 }
-
+void Human::setInfectionCount(int count){
+    infectionCount = 0;
+}
 Wall::Wall(double x_location, double y_location, StudentWorld* temp):Actor(IID_WALL, x_location, y_location, 0, 0, 1, temp){}
-
+//do something for wall doesnt do anything
 
 void Wall::doSomething(){
     return;
@@ -109,20 +122,70 @@ void Pit::doSomething(){
     getWorld()->activateOnAppropriateActors(this);
 }
 
-ActivatingObject::ActivatingObject(int imageID, double x_location, double y_location, Direction dir, StudentWorld* temp):Actor(imageID, x_location, y_location, dir, 0, 1, temp){
+ActivatingObject::ActivatingObject(int imageID, double x_location, double y_location, Direction dir,int depth, StudentWorld* temp):Actor(imageID, x_location, y_location, dir, depth, 1, temp){
     
 }
 
-Exit::Exit(double x_location, double y_location, StudentWorld* temp):ActivatingObject(IID_EXIT, x_location, y_location, right, temp){
+Exit::Exit(double x_location, double y_location, StudentWorld* temp):ActivatingObject(IID_EXIT, x_location, y_location, right, 0, temp){
     
 }
-
+//object doesnt do anything
 void ActivatingObject::doSomething(){
     
 }
-Pit::Pit(double x_location, double y_location, StudentWorld* temp):ActivatingObject(IID_PIT, x_location, y_location, right, temp){}
+Pit::Pit(double x_location, double y_location, StudentWorld* temp):ActivatingObject(IID_PIT, x_location, y_location, right, 0, temp){}
 
-Flame:: Flame(double x_location, double y_location, Direction dir, StudentWorld* temp):ActivatingObject(IID_FLAME, x_location, y_location, dir, temp){}
+//initializes the correct variables in landmine
+Landmine::Landmine(double x_location, double y_location, StudentWorld* temp):ActivatingObject(IID_LANDMINE, x_location, y_location, right, 1, temp){
+    active = false;
+    safetyTicks = 30;
+}
+void Landmine::activateIfAppropiate(Actor* a){
+    if(a->triggersOnlyActiveLandmines()){
+        activateLandmine();
+    }
+}
+void Landmine::dieByFallOrBurnIfAppropriate(){
+    if(isAlive())
+        activateLandmine();
+}
+void Landmine::activateLandmine(){
+    setDead();
+    getWorld()->playSound(SOUND_LANDMINE_EXPLODE);
+    Flame* flame = new Flame(getX(), getY(), up, getWorld());
+    //creates all the flames at the appropiate positions
+    getWorld()->addActor(flame);
+    getWorld()->addActor(new Flame(getX() - SPRITE_WIDTH, getY() + SPRITE_HEIGHT, up, getWorld()));
+    getWorld()->addActor(new Flame(getX() - SPRITE_WIDTH, getY() - SPRITE_HEIGHT, up, getWorld()));
+    getWorld()->addActor(new Flame(getX() - SPRITE_WIDTH, getY(), up, getWorld()));
+    getWorld()->addActor(new Flame(getX() + SPRITE_WIDTH, getY(), up, getWorld()));
+    getWorld()->addActor(new Flame(getX() + SPRITE_WIDTH, getY() + SPRITE_HEIGHT, up, getWorld()));
+    getWorld()->addActor(new Flame(getX() + SPRITE_WIDTH, getY() - SPRITE_HEIGHT, up, getWorld()));
+    getWorld()->addActor(new Flame(getX(), getY() + SPRITE_HEIGHT, up, getWorld()));
+    getWorld()->addActor(new Flame(getX(), getY() - SPRITE_HEIGHT, up, getWorld()));
+    getWorld()->addActor(new Pit(getX(), getY(), getWorld()));
+}
+void Landmine::doSomething(){
+    if(!isAlive())
+        return;
+    if(!active){
+        safetyTicks--;
+        if(safetyTicks==0){
+            active = true;
+        }
+        return;
+    }
+    //activates on the correct ones
+    getWorld()->activateOnAppropriateActors(this);
+}
+bool Actor::triggersOnlyActiveLandmines(){
+    return false;
+}
+bool Agent::triggersOnlyActiveLandmines(){
+    return true;
+}
+//makes sure flames is working
+Flame:: Flame(double x_location, double y_location, Direction dir, StudentWorld* temp):ActivatingObject(IID_FLAME, x_location, y_location, dir,0, temp){}
 void Flame::doSomething(){
     if(!isAlive())
         return;
@@ -142,10 +205,33 @@ void DumbZombie::dieByFallOrBurnIfAppropriate(){
     getWorld()->playSound(SOUND_ZOMBIE_DIE);
     getWorld()->increaseScore(1000);
     if(randInt(1, 10) == 1){
-        VaccineGoodie* vaccine = new VaccineGoodie(getX(), getY(), getWorld());
-        getWorld()->addActor(vaccine);
+        switch(randInt(1, 4)){
+            case(1):{
+                if(!getWorld()->ifOneObjectOverlaps(getX() + SPRITE_WIDTH, getY())){
+                    VaccineGoodie* vaccine = new VaccineGoodie(getX() + SPRITE_WIDTH, getY(), getWorld());
+                    getWorld()->addActor(vaccine);
+                }
+                break;
+            }
+            case(2):{
+                if(!getWorld()->ifOneObjectOverlaps(getX() - SPRITE_WIDTH, getY()))
+                    getWorld()->addActor(new VaccineGoodie(getX() - SPRITE_WIDTH, getY(), getWorld()));
+                break;
+            }
+            case(3):{
+                if(!getWorld()->ifOneObjectOverlaps(getX(), getY() + SPRITE_HEIGHT))
+                    getWorld()->addActor(new VaccineGoodie(getX(), getY() + SPRITE_HEIGHT, getWorld()));
+                break;
+            }
+            case(4):{
+                if(!getWorld()->ifOneObjectOverlaps(getX(), getY() - SPRITE_HEIGHT))
+                    getWorld()->addActor(new VaccineGoodie(getX(), getY() - SPRITE_HEIGHT, getWorld()));
+                break;
+            }
+        }
     }
 }
+//plays the correct sounds and does the right actions
 void SmartZombie::dieByFallOrBurnIfAppropriate(){
     setDead();
     getWorld()->playSound(SOUND_ZOMBIE_DIE);
@@ -163,10 +249,8 @@ void Penelope::dieByFallOrBurnIfAppropriate(){
 void Goodie::dieByFallOrBurnIfAppropriate(){
     setDead();
 }
-void Landmine::dieByFallOrBurnIfAppropriate(){
-    //SET LANDMINE OFF
-}
-Vomit::Vomit(double x_location, double y_location, Direction dir, StudentWorld* temp):ActivatingObject(IID_VOMIT, x_location, y_location, dir, temp){}
+//checks vomit constructor
+Vomit::Vomit(double x_location, double y_location, Direction dir, StudentWorld* temp):ActivatingObject(IID_VOMIT, x_location, y_location, dir, 0, temp){}
 void Vomit::doSomething(){
     if(!isAlive()){
         return;
@@ -183,7 +267,7 @@ void Vomit::doSomething(){
 }
 void Vomit::activateIfAppropiate(Actor *a){
     if(a->isHuman()){
-        a->setInfectionStatus();
+        a->setInfectionStatus(true);
     }
 }
 
@@ -193,14 +277,23 @@ bool Actor::beVomitedOnIfAppropriate(){
 bool Human::beVomitedOnIfAppropriate(){
     return true;
 }
-void Actor::setInfectionStatus(){
-    infectionStatus = true;
+void Actor::setInfectionStatus(bool status){
+    infectionStatus = status;
 }
+//plays citizen sound
+void Citizen::setInfectionStatus(bool status){
+    if(getInfectionStatus())
+        return;
+    Actor::setInfectionStatus(status);
+    getWorld()->playSound(SOUND_CITIZEN_INFECTED);
+}
+
+
 bool Actor::getInfectionStatus(){
     return infectionStatus;
 }
 //depth of goodie is always one, direction right
-Goodie::Goodie(int imageID, double x_location, double y_location, StudentWorld* temp):ActivatingObject(imageID, x_location, y_location, right, temp){}
+Goodie::Goodie(int imageID, double x_location, double y_location, StudentWorld* temp):ActivatingObject(imageID, x_location, y_location, right, 0, temp){}
 
 VaccineGoodie::VaccineGoodie(double x_location, double y_location, StudentWorld* temp):Goodie(IID_VACCINE_GOODIE, x_location, y_location, temp){}
 
@@ -221,6 +314,7 @@ void Goodie::doSomething(){
         getWorld()->playSound(SOUND_GOT_GOODIE);
     }
 }
+//gives the goodies accordingly
 void VaccineGoodie::giveGoodies(Penelope *p){
     p->incrementVaccines(1);
 }
@@ -256,7 +350,7 @@ Penelope::Penelope(double x_location, double y_location, StudentWorld* temp):Hum
     vaccines = 0;
     landmines = 0;
 }
-
+//increment each of them accordingly
 void Penelope::incrementVaccines(int amt){
     vaccines+=amt;
 }
@@ -269,14 +363,12 @@ void Penelope::incrementFlameCharges(int amt){
     flamethrowerCount+=amt;
 }
 
-Citizen::Citizen(double x_location, double y_location, StudentWorld* temp):Human(IID_CITIZEN, x_location, y_location, temp){
-    
-}
+Citizen::Citizen(double x_location, double y_location, StudentWorld* temp):Human(IID_CITIZEN, x_location, y_location, temp){}
 
 bool Actor::isHuman(){
     return false;
 }
-
+//test if the humans is true
 bool Human::isHuman(){
     return true;
 }
@@ -288,6 +380,7 @@ bool Penelope::isHuman(){
 Agent::Agent(int imageID, double x_location, double y_location, StudentWorld* temp):Actor(imageID, x_location, y_location, 0, 0, 1, temp){
     
 }
+//adds vomit when it needs to be added
 bool Zombie::addVomitIfAppropiate(double vomit_x, double vomit_y){
     if(getWorld()->isZombieVomitTriggerAt(vomit_x, vomit_y)){
         Vomit* vomit = new Vomit(vomit_x, vomit_y, up, getWorld());
@@ -323,6 +416,7 @@ void DumbZombie::doDifferentZombieStuff(){
                 break;
         }
     }
+    //checks directions effeciently without wasting code
     if(getDirection() == right || getDirection() == left){
         if(isAgentFreeDirection(getX() + appropiateMovementDirection(getDirection(), 1), getY())){
             moveTo(getX() + appropiateMovementDirection(getDirection(), 1), getY());
@@ -368,6 +462,7 @@ void Zombie::doSomething(){
     }
     doDifferentZombieStuff();
 }
+//does something different for zombies
 void SmartZombie::doDifferentZombieStuff(){
     double xOfClosest;
     double yOfClosest;
@@ -376,6 +471,7 @@ void SmartZombie::doDifferentZombieStuff(){
         setMovementPlan(randInt(3, 10));
         if(!getWorld()->checkObjectOverlap(xOfClosest, yOfClosest, this, 80)){
             switch(randInt(0, 3)){
+                    //random directions
                 case 0:
                     setDirection(right);
                     break;
@@ -413,6 +509,7 @@ void SmartZombie::doDifferentZombieStuff(){
                     }
                 }
             }
+            //checks if not same row or col
             if(getX() != xOfClosest && getY() != yOfClosest){
                 int yChange = 0;
                 int xChange = 0;
@@ -456,7 +553,7 @@ Zombie::Zombie(double x_location, double y_location, StudentWorld* temp):Agent(I
 
 SmartZombie::SmartZombie(double x_location, double y_location, StudentWorld* temp):Zombie(x_location, y_location, temp){
     
-}
+}// a lot of these constructors dont do anything besides intializer list
 
 DumbZombie::DumbZombie(double x_location, double y_location, StudentWorld* temp):Zombie(x_location, y_location, temp){
     
@@ -466,8 +563,6 @@ bool Agent::canBeMovedOnto(){
     return false;
 }
 
-
-
 bool Actor::canBeMovedOnto(){
     return true;
 }
@@ -476,25 +571,14 @@ bool Wall::canBeMovedOnto(){
     return false;
 }
 
-void Exit::doSomething(){
-        //set citizen to dead
-    if(getWorld()->checkCitizenOverlap(this, 10)){
-        //set the citizen to dead in the function above^
-        getWorld()->increaseScore(500);
-        getWorld()->playSound(SOUND_CITIZEN_SAVED);
-    }
-    if(!getWorld()->isCitizenLeft() && getWorld()->checkPlayerOverlap(getX(), getY(), 10, this))
-        getWorld()->setLevelDone();
-}
+
 int Human::getInfectionCount(){
     return infectionCount;
 }
 void Human::incrementInfectionCount(){
     infectionCount++;
 }
-void SmartZombie::doSomething(){
-    Zombie::doSomething();
-}
+
 void Human::doSomething(){
     if(!isAlive()){
         return;
@@ -503,8 +587,8 @@ void Human::doSomething(){
         incrementInfectionCount();
         if(getInfectionCount() == 500){
             setDead();
-            getWorld()->playSound(SOUND_ZOMBIE_BORN);
             getWorld()->increaseScore(-1000);
+            playAppropiateSound();
             int rand = randInt(1, 10);
             if(rand >= 1 && rand <= 3){
                 SmartZombie* zombie = new SmartZombie(getX(), getY(), getWorld());
@@ -522,6 +606,13 @@ void Human::doSomething(){
         return;
     }
     doDifferentHumanStuff();
+}
+//plays the right sound
+void Citizen::playAppropiateSound(){
+    getWorld()->playSound(SOUND_ZOMBIE_BORN);
+}
+void Penelope::playAppropiateSound(){
+    getWorld()->playSound(SOUND_PLAYER_DIE);
 }
 void Citizen::doDifferentHumanStuff(){
     double dist_p = getWorld()->distanceToPlayer(getX(), getY());
@@ -566,6 +657,7 @@ void Citizen::doDifferentHumanStuff(){
                 }
             }
         }
+        //checks for different rows and cols
         if(getX() != getWorld()->getPenelopeX() && getY() != getWorld()->getPenelopeY()){
             int yChange;
             int xChange;
@@ -607,6 +699,7 @@ void Citizen::doDifferentHumanStuff(){
             
         }
     }
+    //what happens if zombies distance less than 80
     if(dist_z <= 80){
         double farthestDistance = getWorld()->leastDistanceToZombie(getX(), getY());
         int tempDirection = -1;
@@ -676,7 +769,7 @@ void Flame::activateIfAppropiate(Actor *temp){
 void Actor::incrementTickCount(){
     tickCount++;
 }
-
+//getter functions
 int Actor::getTickCount(){
     return tickCount;
 }
@@ -688,25 +781,34 @@ bool Actor::isZombie(){
 bool Zombie::isZombie(){
     return true;
 }
-//ALL ACTIVATE TO APPROPIATE METHODS
 void Actor::activateIfAppropiate(Actor *a){
-    
+    //nothing
+}
+void Actor::useExitIfAppropriate(){}
+void Citizen::useExitIfAppropriate(){
+    setDead();
+    getWorld()->playSound(SOUND_CITIZEN_SAVED);
+    getWorld()->increaseScore(500);
+}
+void Penelope::useExitIfAppropriate(){
+    if(!getWorld()->isCitizenLeft()){
+        getWorld()->setLevelDone();
+    }
+}
+void Exit::doSomething(){
+    //set citizen to dead
+    getWorld()->checkCitizenOverlap(this, 10);
+    getWorld()->checkPlayerOverlap(getX(), getY(), 10, this);
 }
 
 void Exit::activateIfAppropiate(Actor *a){
-    if(getWorld()->isCitizenLeft() && isHuman()){
-        a->setDead();
-        return;
-    }
-    if(isHuman())
-        getWorld()->setLevelDone();
-    
+    a->useExitIfAppropriate();
 }
 
 void Zombie::setMovementPlan(int plan){
     movementPlan = plan;
 }
-
+//getters and setters
 int Zombie::getMovementPlan(){
     return movementPlan;
 }
